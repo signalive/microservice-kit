@@ -90,7 +90,6 @@ class MicroserviceKit {
             else
                 callbacks.resolve(response.payload);
 
-            // TODO: We just accept the first callback recieved.
             delete this.callbacks_[correlationId];
         } catch(err) {
             console.log('Json parse error', err);
