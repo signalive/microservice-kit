@@ -3,11 +3,12 @@
 const _ = require('lodash');
 const amqp = require('amqplib');
 const uuid = require('node-uuid');
-const debug = require('debug')('microservicekit:amqp');
+const debug = require('debug')('microservicekit:amqpkit');
 
 const Message = require('./lib/message');
 const Response = require('./lib/response');
 const Router = require('./lib/router');
+const ShutdownKit = require('./shutdownkit');
 
 
 class AmqpKit {
@@ -85,6 +86,16 @@ class AmqpKit {
 
         this.connection.on('unblocked', () => {
             debug('connection blocked');
+        });
+
+        ShutdownKit.addJob((done) => {
+            debug('Closing connection...');
+            this.connection
+                .close()
+                .then(() => {
+                    done();
+                })
+                .catch(done);
         });
     }
 
