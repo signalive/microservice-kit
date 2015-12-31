@@ -23,6 +23,7 @@ class AmqpKit {
         this.rpcQueue_ = null;
         this.rpcChannel_ = null;
         this.callbacks_ = {};
+        this.timeouts_ = {};
         this.consumers_ = {};
         this.routers_ = {};
     }
@@ -125,6 +126,11 @@ class AmqpKit {
             else
                 callbacks.resolve(response.payload);
 
+            if (this.timeouts_[correlationId]) {
+                clearTimeout(this.timeouts_[correlationId]);
+                delete this.timeouts_[correlationId];
+            }
+
             delete this.callbacks_[correlationId];
         } catch(err) {
             debug('Cannot consume rpc message, probably json parse error.');
@@ -197,6 +203,13 @@ class AmqpKit {
         const rv = new Promise((resolve, reject) => {
             this.channel.publish(exchange, routingKey, content, options);
             this.callbacks_[options.correlationId] = {reject, resolve};
+
+            if (options.timeout > 0)
+                this.timeouts_[options.correlationId] = setTimeout(() => {
+                    reject(new Error('Timeout exceed.'));
+                    delete this.callbacks_[options.correlationId];
+                    delete this.timeouts_[options.correlationId];
+                }, options.timeout);
         });
 
         rv.progress = (callback) => {
@@ -247,6 +260,13 @@ class AmqpKit {
         const rv = new Promise((resolve, reject) => {
             this.channel.sendToQueue(queue, content, options);
             this.callbacks_[options.correlationId] = {resolve, reject};
+
+            if (options.timeout > 0)
+                this.timeouts_[options.correlationId] = setTimeout(() => {
+                    reject(new Error('Timeout exceed.'));
+                    delete this.callbacks_[options.correlationId];
+                    delete this.timeouts_[options.correlationId];
+                }, options.timeout);
         });
 
         rv.progress = (callback) => {
@@ -370,7 +390,8 @@ AmqpKit.prototype.consumeDefaults = {
  * @type {Object}
  */
 AmqpKit.prototype.publishDefaults = {
-    dontExpectRpc: false
+    dontExpectRpc: false,
+    timeout: 30 * 1000 // 30 seconds
 };
 
 
