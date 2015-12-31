@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const amqp = require('amqplib');
 const uuid = require('node-uuid');
+const debug = require('debug')('microservicekit:amqp');
 
 const Message = require('./lib/message');
 const Response = require('./lib/response');
@@ -60,8 +61,31 @@ class MicroserviceKit {
                     this.rpcChannel_.consume(this.rpcQueue_, this.consumeRpc_.bind(this), {noAck: true});
                 }
 
+                this.bindEvents();
                 return this;
             });
+    }
+
+
+    /**
+     * Bind rabbitmq's connection events.
+     */
+    bindEvents() {
+        this.connection.on('close', () => {
+            debug('connection closed');
+        });
+
+        this.connection.on('error', (err) => {
+            debug('connection error', err && err.stack ? err.stack : err);
+        });
+
+        this.connection.on('blocked', () => {
+            debug('connection blocked');
+        });
+
+        this.connection.on('unblocked', () => {
+            debug('connection blocked');
+        });
     }
 
 
@@ -92,7 +116,9 @@ class MicroserviceKit {
 
             delete this.callbacks_[correlationId];
         } catch(err) {
-            console.log('Json parse error', err);
+            debug('Cannot consume rpc message, probably json parse error.');
+            debug('Message:', msg);
+            debug('Error:', err);
         }
     }
 
@@ -278,11 +304,11 @@ class MicroserviceKit {
 
                 this.consumers_[queue] && this.consumers_[queue](data, done, progress);
             } catch(err) {
-                console.log('Error while consuming message:' + msg.content);
-                console.log(err.stack);
+                debug('Error while consuming message:' + msg.content);
+                debug(err.stack);
 
                 if (!options.noAck) {
-                    console.log('Negative acknowledging...');
+                    debug('Negative acknowledging...');
                     this.channel.nack(msg);
                 }
             }
