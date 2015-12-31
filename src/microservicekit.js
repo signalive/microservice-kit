@@ -130,6 +130,14 @@ class MicroserviceKit {
 
 
     /**
+     * prefetch wrapper function.
+     */
+    prefetch(count, opt_global) {
+        return this.channel.prefetch(count, opt_global);
+    }
+
+
+    /**
      * Publishes a message on main channel. Its just implements callback (rpc)
      * support and json stringifying data.
      * TODO: Implement timeout.
