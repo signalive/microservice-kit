@@ -5,17 +5,17 @@ const MicroserviceKit = require('../src');
 
 const SOCKET_BROADCAST_EXCHANGE = 'signa.socket.broadcast';
 const SOCKET_DIRECT_EXCHANGE = 'signa.socket.direct';
-const microserviceKit = new MicroserviceKit();
+const amqpKit = new MicroserviceKit.AmqpKit();
 
-microserviceKit
+amqpKit
     .init()
     .then(() => {
         // Config phase
         return Promise.all([
-            microserviceKit.assertQueue('', {exclusive: true}),
-            microserviceKit.assertQueue('', {exclusive: true}),
-            microserviceKit.assertExchange(SOCKET_BROADCAST_EXCHANGE, 'fanout', {}),
-            microserviceKit.assertExchange(SOCKET_DIRECT_EXCHANGE, 'direct', {})
+            amqpKit.assertQueue('', {exclusive: true}),
+            amqpKit.assertQueue('', {exclusive: true}),
+            amqpKit.assertExchange(SOCKET_BROADCAST_EXCHANGE, 'fanout', {}),
+            amqpKit.assertExchange(SOCKET_DIRECT_EXCHANGE, 'direct', {})
         ]);
     })
     .then((results) => {
@@ -26,21 +26,21 @@ microserviceKit
         console.log("Waiting for messages in %s and %s. To exit press CTRL+C", broadcastConsumptionQueue.queue, directConsumptionQueue.queue);
 
         // Bind to broadcast exchange
-        microserviceKit.bindQueue(broadcastConsumptionQueue.queue, SOCKET_BROADCAST_EXCHANGE, '');
+        amqpKit.bindQueue(broadcastConsumptionQueue.queue, SOCKET_BROADCAST_EXCHANGE, '');
 
 
         /**
          * On device connect
          */
         function onDeviceConnect(device) {
-            microserviceKit.bindQueue(directConsumptionQueue.queue, SOCKET_DIRECT_EXCHANGE, device.uuid);
+            amqpKit.bindQueue(directConsumptionQueue.queue, SOCKET_DIRECT_EXCHANGE, device.uuid);
         }
 
         /**
          * On device disconnect
          */
         function onDeviceDisconnect(device) {
-            microserviceKit.unbindQueue(directConsumptionQueue.queue, SOCKET_DIRECT_EXCHANGE, device.uuid);
+            amqpKit.unbindQueue(directConsumptionQueue.queue, SOCKET_DIRECT_EXCHANGE, device.uuid);
         }
 
         // Randomly bind for a device for test purposes
@@ -54,20 +54,20 @@ microserviceKit
         /**
          * Consume socket jobs!
          */
-        microserviceKit.consumeEvent(broadcastConsumptionQueue.queue, 'signa.socket.broadcast.update-channel', (data) => {
+        amqpKit.consumeEvent(broadcastConsumptionQueue.queue, 'signa.socket.broadcast.update-channel', (data) => {
             console.log("Received channel update: " + JSON.stringify(data));
         }, {noAck: true});
 
-        microserviceKit.consumeEvent(broadcastConsumptionQueue.queue, 'signa.socket.broadcast.new-app-version', (data) => {
+        amqpKit.consumeEvent(broadcastConsumptionQueue.queue, 'signa.socket.broadcast.new-app-version', (data) => {
             console.log("Received new app version: " + JSON.stringify(data));
         }, {noAck: true});
 
-        microserviceKit.consumeEvent(directConsumptionQueue.queue, 'signa.socket.direct.update-device', (data, callback) => {
+        amqpKit.consumeEvent(directConsumptionQueue.queue, 'signa.socket.direct.update-device', (data, callback) => {
             console.log("Received update device: " + JSON.stringify(data));
             callback(null, {some: 'device updated kanka, no worries.'});
         });
 
-        microserviceKit.consumeEvent(directConsumptionQueue.queue, 'signa.socket.direct.screenshot', (data, callback) => {
+        amqpKit.consumeEvent(directConsumptionQueue.queue, 'signa.socket.direct.screenshot', (data, callback) => {
             console.log("Received update device: " + JSON.stringify(data));
 
             setTimeout(() => {

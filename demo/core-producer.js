@@ -4,14 +4,14 @@ const MicroserviceKit = require('../src');
 
 
 const QUEUE_NAME = 'signa.core';
-const microserviceKit = new MicroserviceKit();
+const amqpKit = new MicroserviceKit.AmqpKit();
 
-microserviceKit
+amqpKit
     .init()
     .then(() => {
         // Run phase
         // Add message to queue
-        microserviceKit
+        amqpKit
             .sendEventToQueue(QUEUE_NAME, 'deneme.job', {some: 'data!'}, {persistent: true})
             .progress((data) => {
                 console.log('Progressing...' + JSON.stringify(data));

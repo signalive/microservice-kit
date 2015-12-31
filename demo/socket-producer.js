@@ -5,14 +5,14 @@ const MicroserviceKit = require('../src');
 
 const SOCKET_BROADCAST_EXCHANGE = 'signa.socket.broadcast';
 const SOCKET_DIRECT_EXCHANGE = 'signa.socket.direct';
-const microserviceKit = new MicroserviceKit();
+const amqpKit = new MicroserviceKit.AmqpKit();
 
-microserviceKit
+amqpKit
     .init()
     .then(() => {
         // Run phase
         // Broadcast
-        microserviceKit
+        amqpKit
             .publishEvent(
                 SOCKET_BROADCAST_EXCHANGE,
                 '',
@@ -27,7 +27,7 @@ microserviceKit
                 console.log('Cannot send pubsub message.');
             });
 
-        microserviceKit
+        amqpKit
             .publishEvent(
                 SOCKET_BROADCAST_EXCHANGE,
                 '',
@@ -43,7 +43,7 @@ microserviceKit
             });
 
         // Direct
-        microserviceKit
+        amqpKit
             .publishEvent(
                 SOCKET_DIRECT_EXCHANGE,
                 'device-uuid',
@@ -57,7 +57,7 @@ microserviceKit
                 console.log('Negative response: ' + JSON.stringify(err));
             });
 
-        microserviceKit
+        amqpKit
             .publishEvent(
                 SOCKET_DIRECT_EXCHANGE,
                 'device-uuid',

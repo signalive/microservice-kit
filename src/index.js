@@ -1,3 +1,4 @@
 'use strict';
 
-module.exports = require('./microservicekit');
+module.exports = {};
+module.exports.AmqpKit = require('./amqpkit');

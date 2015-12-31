@@ -10,7 +10,7 @@ const Response = require('./lib/response');
 const Router = require('./lib/router');
 
 
-class MicroserviceKit {
+class AmqpKit {
     /**
      *
      * @param {Object=} opt_options
@@ -339,7 +339,7 @@ class MicroserviceKit {
  * Default options.
  * @type {Object}
  */
-MicroserviceKit.prototype.defaults = {
+AmqpKit.prototype.defaults = {
     alias: 'microservice',
     rpc: true
 };
@@ -349,7 +349,7 @@ MicroserviceKit.prototype.defaults = {
  * Default consume options.
  * @type {Object}
  */
-MicroserviceKit.prototype.consumeDefaults = {
+AmqpKit.prototype.consumeDefaults = {
     noAck: false
 };
 
@@ -358,9 +358,9 @@ MicroserviceKit.prototype.consumeDefaults = {
  * Default publish & sendToQueue options.
  * @type {Object}
  */
-MicroserviceKit.prototype.publishDefaults = {
+AmqpKit.prototype.publishDefaults = {
     dontExpectRpc: false
 };
 
 
-module.exports = MicroserviceKit;
+module.exports = AmqpKit;
