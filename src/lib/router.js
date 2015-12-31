@@ -1,6 +1,6 @@
 'use strict';
 
-const Message = require('./lib/message');
+const Message = require('./message');
 
 
 /**

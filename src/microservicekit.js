@@ -6,7 +6,7 @@ const uuid = require('node-uuid');
 
 const Message = require('./lib/message');
 const Response = require('./lib/response');
-const Router = require('./router');
+const Router = require('./lib/router');
 
 
 class MicroserviceKit {
