@@ -1,6 +1,8 @@
 'use strict';
 
+const debug = require('debug')('microservicekit:amqpkit:router');
 const Message = require('./message');
+
 
 
 /**
@@ -32,13 +34,15 @@ class Router {
      * @param {Function} progress
      */
     handle(data, done, progress) {
+        debug('Incoming message:' + JSON.stringify(data));
+
         const message = Message.parse(data);
         const callback = this.callbacks_[message.eventName];
 
         if (callback)
             callback(message.payload, done, progress)
         else
-            console.log('Unhandled message:' + JSON.stringify(data));
+            debug('Unhandled message:' + JSON.stringify(data));
     }
 }
 
