@@ -3,71 +3,79 @@
 const MicroserviceKit = require('../src');
 
 
-const SOCKET_BROADCAST_EXCHANGE = 'signa.socket.broadcast';
-const SOCKET_DIRECT_EXCHANGE = 'signa.socket.direct';
 const amqpKit = new MicroserviceKit.AmqpKit();
 
 amqpKit
-    .init()
-    .then(() => {
-        // Config phase
-        return Promise.all([
-            amqpKit.assertQueue('', {exclusive: true}),
-            amqpKit.assertQueue('', {exclusive: true}),
-            amqpKit.assertExchange(SOCKET_BROADCAST_EXCHANGE, 'fanout', {}),
-            amqpKit.assertExchange(SOCKET_DIRECT_EXCHANGE, 'direct', {})
-        ]);
+    .init({
+        url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
+        alias: 'SocketWorker0',
+        queues: [
+            {
+                name: 'SocketWorker0.broadcast',
+                options: {exclusive: true}
+            },
+            {
+                name: 'SocketWorker0.direct',
+                options: {exclusive: true}
+            }
+        ],
+        exchanges: [
+            {
+                name: 'SocketWorker.broadcast',
+                type: 'fanout',
+                options: {}
+            },
+            {
+                name: 'SocketWorker.direct',
+                type: 'direct',
+                options: {}
+            }
+        ]
     })
-    .then((results) => {
-        // Run phase
-        const broadcastConsumptionQueue = results[0];
-        const directConsumptionQueue = results[1];
+    .then(() => {
+        console.log("Waiting for messages in %s and %s. To exit press CTRL+C", 'SocketWorker0.broadcast', 'SocketWorker0.direct');
 
-        console.log("Waiting for messages in %s and %s. To exit press CTRL+C", broadcastConsumptionQueue.queue, directConsumptionQueue.queue);
+        let broadcastQueue = amqpKit.getQueue('SocketWorker0.broadcast');
+        let directQueue = amqpKit.getQueue('SocketWorker0.direct');
 
         // Bind to broadcast exchange
-        amqpKit.bindQueue(broadcastConsumptionQueue.queue, SOCKET_BROADCAST_EXCHANGE, '');
-
+        broadcastQueue.bind('SocketWorker.broadcast', '');
 
         /**
          * On device connect
          */
         function onDeviceConnect(device) {
-            amqpKit.bindQueue(directConsumptionQueue.queue, SOCKET_DIRECT_EXCHANGE, device.uuid);
+            directQueue.bind('SocketWorker.direct', device.uuid);
         }
 
         /**
          * On device disconnect
          */
         function onDeviceDisconnect(device) {
-            amqpKit.unbindQueue(directConsumptionQueue.queue, SOCKET_DIRECT_EXCHANGE, device.uuid);
+            directQueue.unbind('SocketWorker.direct', device.uuid);
         }
 
-        // Randomly bind for a device for test purposes
-        if (Math.random() >= 0.5) {
-            var device = {uuid: 'device-uuid'};
-            console.log('Binded for ', device);
-            onDeviceConnect(device);
-        }
+        var device = {uuid: 'device-uuid'};
+        onDeviceConnect(device);
 
 
         /**
          * Consume socket jobs!
          */
-        amqpKit.consumeEvent(broadcastConsumptionQueue.queue, 'signa.socket.broadcast.update-channel', (data) => {
+        broadcastQueue.consumeEvent('signa.socket.broadcast.update-channel', (data) => {
             console.log("Received channel update: " + JSON.stringify(data));
         }, {noAck: true});
 
-        amqpKit.consumeEvent(broadcastConsumptionQueue.queue, 'signa.socket.broadcast.new-app-version', (data) => {
+        broadcastQueue.consumeEvent('signa.socket.broadcast.new-app-version', (data) => {
             console.log("Received new app version: " + JSON.stringify(data));
         }, {noAck: true});
 
-        amqpKit.consumeEvent(directConsumptionQueue.queue, 'signa.socket.direct.update-device', (data, callback) => {
+        directQueue.consumeEvent('signa.socket.direct.update-device', (data, callback) => {
             console.log("Received update device: " + JSON.stringify(data));
             callback(null, {some: 'device updated kanka, no worries.'});
         });
 
-        amqpKit.consumeEvent(directConsumptionQueue.queue, 'signa.socket.direct.screenshot', (data, callback) => {
+        directQueue.consumeEvent('signa.socket.direct.screenshot', (data, callback) => {
             console.log("Received update device: " + JSON.stringify(data));
 
             setTimeout(() => {

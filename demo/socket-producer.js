@@ -2,19 +2,34 @@
 
 const MicroserviceKit = require('../src');
 
-
-const SOCKET_BROADCAST_EXCHANGE = 'signa.socket.broadcast';
-const SOCKET_DIRECT_EXCHANGE = 'signa.socket.direct';
 const amqpKit = new MicroserviceKit.AmqpKit();
 
 amqpKit
-    .init()
+    .init({
+        url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
+        alias: 'SocketProducer0',
+        exchanges: [
+            {
+                name: 'SocketWorker.broadcast',
+                type: 'fanout',
+                options: {}
+            },
+            {
+                name: 'SocketWorker.direct',
+                type: 'direct',
+                options: {}
+            }
+        ]
+    })
     .then(() => {
         // Run phase
         // Broadcast
-        amqpKit
+
+        let broadcastExchange = amqpKit.getExchange('SocketWorker.broadcast');
+        let directExchange = amqpKit.getExchange('SocketWorker.direct');
+
+        broadcastExchange
             .publishEvent(
-                SOCKET_BROADCAST_EXCHANGE,
                 '',
                 'signa.socket.broadcast.update-channel',
                 {txt: 'channel update detail here.'},
@@ -27,9 +42,8 @@ amqpKit
                 console.log('Cannot send pubsub message.');
             });
 
-        amqpKit
+        broadcastExchange
             .publishEvent(
-                SOCKET_BROADCAST_EXCHANGE,
                 '',
                 'signa.socket.broadcast.new-app-version',
                 {txt: 'new app version falan.'},
@@ -43,9 +57,8 @@ amqpKit
             });
 
         // Direct
-        amqpKit
+        directExchange
             .publishEvent(
-                SOCKET_DIRECT_EXCHANGE,
                 'device-uuid',
                 'signa.socket.direct.update-device',
                 {txt:'Update device falan.'}
@@ -57,9 +70,8 @@ amqpKit
                 console.log('Negative response: ' + JSON.stringify(err));
             });
 
-        amqpKit
+        directExchange
             .publishEvent(
-                SOCKET_DIRECT_EXCHANGE,
                 'device-uuid',
                 'signa.socket.direct.screenshot',
                 {txt:'Screenshot request kanka.'}
