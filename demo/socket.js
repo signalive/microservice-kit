@@ -7,7 +7,7 @@ const amqpKit = new MicroserviceKit.AmqpKit();
 
 amqpKit
     .init({
-        url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
+        // url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
         alias: 'SocketWorker0',
         queues: [
             {

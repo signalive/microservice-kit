@@ -2,8 +2,10 @@
 
 const debug = require('debug')('microservicekit:lib:queue');
 const async = require('async-q');
+const uuid = require('node-uuid');
 const _ = require('lodash');
 const Message = require('./message');
+const Exchange = require('./exchange');
 const Response = require('./response');
 const Router = require('./router');
 
@@ -17,6 +19,7 @@ class Queue {
 
         this.channel = options.channel;
         this.name = options.name || '';
+        this.rpc_ = options.rpc;
         this.options = options.options || {};
     }
 
@@ -130,6 +133,55 @@ class Queue {
 
     getUniqueName() {
         return this.queue_.queue;
+    }
+
+
+    /**
+     * Sends a message to queue on main channel. Its just implements callback (rpc)
+     * support and json stringifying data.
+     * TODO: Implement timeout.
+     * @param {Object=} opt_data
+     * @param {Object=} opt_options
+     * @return {Promise}
+     */
+    send(opt_data, opt_options) {
+        const queue = this.getUniqueName();
+        const options = _.assign({}, Exchange.publishDefaults, opt_options || {});
+        const content = new Buffer(JSON.stringify(opt_data || {}));
+
+        if (!this.rpc_ || options.dontExpectRpc)
+            return Promise.resolve(this.channel.sendToQueue(queue, content, options));
+
+        options.correlationId = uuid.v4();
+        options.replyTo = this.rpc_.getUniqueQueueName();
+
+        const rv = new Promise((resolve, reject) => {
+            this.channel.sendToQueue(queue, content, options);
+            this.rpc_.registerCallback(options.correlationId, {resolve, reject}, options.timeout);
+        });
+
+        rv.progress = (callback) => {
+            let rpcCb_ = this.rpc_.getCallback(options.correlationId);
+            if (rpcCb_)
+                rpcCb_.progress = callback;
+
+            return rv;
+        };
+
+        return rv;
+    }
+
+
+    /**
+     * Brings eventName support for main publish method above.
+     * @param {string} eventName
+     * @param {Object=} opt_payload
+     * @param {Object=} opt_options
+     * @return {Promise}
+     */
+    sendEvent(eventName, opt_payload, opt_options) {
+        const message = new Message(eventName, opt_payload);
+        return this.send(message.toJSON(), opt_options);
     }
 }
 

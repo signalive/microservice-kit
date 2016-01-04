@@ -7,12 +7,21 @@ const QUEUE_NAME = 'signa.core';
 const amqpKit = new MicroserviceKit.AmqpKit();
 
 amqpKit
-    .init()
+    .init({
+        // url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
+        alias: 'Core0',
+        queues: [
+            {
+                name: QUEUE_NAME,
+                options: {durable: true}
+            }
+        ]
+    })
     .then(() => {
-        // Run phase
-        // Add message to queue
-        amqpKit
-            .sendEventToQueue(QUEUE_NAME, 'deneme.job', {some: 'data!'}, {persistent: true})
+        const coreQueue = amqpKit.getQueue(QUEUE_NAME);
+
+        coreQueue
+            .sendEvent('deneme.job', {some: 'data!'}, {persistent: true})
             .progress((data) => {
                 console.log('Progressing...' + JSON.stringify(data));
             })
@@ -25,5 +34,5 @@ amqpKit
     })
     .catch((err) => {
         console.log('Cannot boot');
-        console.log(err);
+        console.log(err.stack);
     });

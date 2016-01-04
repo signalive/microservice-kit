@@ -7,17 +7,24 @@ const QUEUE_NAME = 'signa.core';
 const amqpKit = new MicroserviceKit.AmqpKit();
 
 amqpKit
-    .init()
-    .then(() => {
-        // Config phase
-        return amqpKit.assertQueue(QUEUE_NAME, {durable: true});
+    .init({
+        // url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
+        alias: 'Core0',
+        queues: [
+            {
+                name: QUEUE_NAME,
+                options: {durable: true}
+            }
+        ]
     })
     .then(() => {
         // Run phase
         console.log("Waiting for messages in %s. To exit press CTRL+C", QUEUE_NAME);
 
+        const coreQueue = amqpKit.getQueue(QUEUE_NAME);
+
         // Consume some core jobs!
-        amqpKit.consumeEvent(QUEUE_NAME, 'deneme.job', (data, callback, progress) => {
+        coreQueue.consumeEvent('deneme.job', (data, callback, progress) => {
             console.log("Received: " + JSON.stringify(data));
 
             // Dummy progress events

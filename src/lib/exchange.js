@@ -93,7 +93,7 @@ class Exchange {
  * Default publish & sendToQueue options.
  * @type {Object}
  */
-Exchange.prototype.publishDefaults = {
+Exchange.prototype.publishDefaults = Exchange.publishDefaults = {
     dontExpectRpc: false,
     timeout: 30 * 1000
 };
