@@ -58,7 +58,7 @@ class Exchange {
 
         const rv = new Promise((resolve, reject) => {
             this.channel.publish(this.name, routingKey, content, options);
-            this.rpc_.registerCallback(options.correlationId, {reject, resolve})
+            this.rpc_.registerCallback(options.correlationId, {reject, resolve}, options.timeout);
         });
 
         rv.progress = (callback) => {
@@ -94,7 +94,8 @@ class Exchange {
  * @type {Object}
  */
 Exchange.prototype.publishDefaults = {
-    dontExpectRpc: false
+    dontExpectRpc: false,
+    timeout: 30 * 1000
 };
 
 

@@ -67,7 +67,7 @@ amqpKit
                 console.log('Positive response: ' + JSON.stringify(response));
             })
             .catch((err) => {
-                console.log('Negative response: ' + JSON.stringify(err));
+                console.log('Negative response: ' + err);
             });
 
         directExchange
@@ -80,7 +80,7 @@ amqpKit
                 console.log('Positive response: ' + JSON.stringify(response));
             })
             .catch((err) => {
-                console.log('Negative response: ' + JSON.stringify(err));
+                console.log('Negative response: ' + err);
             });
 
     })

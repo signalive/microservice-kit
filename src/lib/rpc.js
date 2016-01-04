@@ -2,6 +2,7 @@
 
 const debug = require('debug')('microservicekit:lib:rpc');
 const uuid = require('node-uuid');
+const _ = require('lodash');
 const Response = require('./response');
 const Queue = require('./queue');
 
@@ -13,6 +14,7 @@ class RPC {
         this.queue_ = null;
         this.channel_ = null;
         this.callbacks_ = {};
+        this.timeouts_ = {};
     }
 
 
@@ -74,6 +76,11 @@ class RPC {
             else
                 callbacks.resolve(response.payload);
 
+            if (this.timeouts_[correlationId]) {
+                clearTimeout(this.timeouts_[correlationId]);
+                delete this.timeouts_[correlationId];
+            }
+
             delete this.callbacks_[correlationId];
         } catch(err) {
             debug('Cannot consume rpc message, probably json parse error.');
@@ -86,8 +93,17 @@ class RPC {
         return this.queue_.getUniqueName();
     }
 
-    registerCallback(key, funcs) {
+    registerCallback(key, funcs, opt_timeout) {
         this.callbacks_[key] = funcs;
+
+        if (_.isNumber(opt_timeout) && opt_timeout > 0) {
+            this.timeouts_[key] = setTimeout(() => {
+                const callbacks = this.callbacks_[key];
+                callbacks && callbacks.reject && callbacks.reject(new Error('Timeout exceed.'));
+                delete this.callbacks_[key];
+                delete this.timeouts_[key];
+            }, opt_timeout)
+        }
     }
 
     getCallback(key) {
