@@ -16,8 +16,13 @@ const ShutdownKit = require('./shutdownkit');
 
 
 class AmqpKit {
+    /**
+     * @param {Object=} opt_options
+     *                    url, rpc, queues, exchanges
+     */
+    constructor(opt_options) {
+        this.options_ = _.assign({}, this.defaults, opt_options || {});
 
-    constructor() {
         this.connection = null;
         this.channel = null;
         this.rpc_ = null;
@@ -28,13 +33,9 @@ class AmqpKit {
 
     /**
      * Connects to rabbitmq, creates channel and creates rpc queue if needed.
-     * @param {Object=} opt_options
-     *                    url, rpc, queues, exchanges
      * @return {Promise.<this>}
      */
-    init(opt_options) {
-        this.options_ = _.assign({}, this.defaults, opt_options || {});
-
+    init() {
         if (this.options_.exchanges && !Array.isArray(this.options_.exchanges))
             throw new Error('MicroserviceKit init failed. ' +
                 'options.exchanges must be an array.');
@@ -53,13 +54,13 @@ class AmqpKit {
 
                 if (this.options_.rpc) {
                     this.rpc_ = new RPC();
-                    jobs.push(this.rpc_.init(connection));
+                    const rpcQueueName = this.options_.id + '-rpc';
+                    jobs.push(this.rpc_.init(connection, rpcQueueName));
                 }
 
                 return Promise.all(jobs);
             })
             .then((channels) => {
-                // TODO: Listen and handle connection's and channel's closed, disconnect, error events.
                 this.channel = channels[0];
                 this.bindEvents();
                 return this;
@@ -68,37 +69,14 @@ class AmqpKit {
                 const queues = this.options_.queues || [];
                 debug('Asserting ' + queues.length + ' queues');
                 return async.mapLimit(queues, 5, (item, index) => {
-                    const queue = new Queue({
-                        channel: this.channel,
-                        name: item.name,
-                        options: item.options,
-                        rpc: this.rpc_
-                    });
-
-                    return queue.init()
-                        .then(() => {
-                            this.queues_[item.name] = queue;
-                            debug('Asserted queue: ' + queue.name);
-                        });
+                    return this.createQueue(item.key, item.name, item.options);
                 })
             })
             .then(() => {
                 const exchanges = this.options_.exchanges || [];
                 debug('Asserting ' + exchanges.length + ' exchanges');
                 return async.mapLimit(exchanges, 5, (item, index) => {
-                    const exchange = new Exchange({
-                        channel: this.channel,
-                        name: item.name,
-                        type: item.type,
-                        options: item.options,
-                        rpc: this.rpc_
-                    });
-
-                    return exchange.init()
-                        .then((exchange) => {
-                            this.exchanges_[item.name] = exchange;
-                            debug('Asserted exchange: ' + exchange.name);
-                        });
+                    return this.createExchange(item.key, item.name, item.type, item.options);
                 })
             });
     }
@@ -161,6 +139,71 @@ class AmqpKit {
     getExchange(exchangeKey) {
         return this.exchanges_[exchangeKey];
     }
+
+
+    /**
+     * Creates a queue.
+     * @param {string} key
+     * @param {string} name
+     * @param {Object=} opt_options
+     * @return {Promise}
+     */
+    createQueue(key, name, opt_options) {
+        if (!key)
+            return Promise.reject(new Error('You cannot create queue without key.'));
+
+        if (this.queues_[key])
+            return Promise.reject(new Error('You cannot create queue with same key more than once.'));
+
+        if (!name && opt_options && opt_options.exclusive)
+            name = this.options_.id + '-' + 'excl' + '-' + uuid.v4().split('-')[0];
+
+        const queue = new Queue({
+            channel: this.channel,
+            name: name,
+            options: opt_options,
+            rpc: this.rpc_
+        });
+
+        return queue.init()
+            .then(() => {
+                this.queues_[key] = queue;
+                debug('Asserted queue: ' + queue.name);
+                return queue;
+            });
+    }
+
+
+    /**
+     * Creates an exchange.
+     * @param {string} key
+     * @param {string} name
+     * @param {string} type
+     * @param {Object=} opt_options
+     * @return {Promise}
+     */
+    createExchange(key, name, type, opt_options) {
+        if (!key)
+            return Promise.reject(new Error('You cannot create exchange without key.'));
+
+        if (this.exchanges_[key])
+            return Promise.reject(new Error('You cannot create exchange with same key more than once.'));
+
+        const exchange = new Exchange({
+            channel: this.channel,
+            name: name,
+            type: type,
+            options: opt_options,
+            rpc: this.rpc_
+        });
+
+        return exchange.init()
+            .then((exchange) => {
+                this.exchanges_[key] = exchange;
+                debug('Asserted exchange: ' + exchange.name);
+                return exchange;
+            });
+    }
 }
 
 
@@ -169,10 +212,9 @@ class AmqpKit {
  * @type {Object}
  */
 AmqpKit.prototype.defaults = {
-    alias: 'microservice',
+    id: 'microservice-default-id',
     rpc: true
 };
-
 
 
 module.exports = AmqpKit;

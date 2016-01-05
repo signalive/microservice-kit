@@ -4,21 +4,24 @@ const MicroserviceKit = require('../src');
 
 
 const QUEUE_NAME = 'signa.core';
-const amqpKit = new MicroserviceKit.AmqpKit();
-
-amqpKit
-    .init({
-        // url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
-        alias: 'Core0',
+const microserviceKit = new MicroserviceKit({
+    type: 'core-producer',
+    config: null, // Dont use config file!
+    amqp: {
         queues: [
             {
                 name: QUEUE_NAME,
+                key: QUEUE_NAME,
                 options: {durable: true}
             }
         ]
-    })
+    }
+});
+
+microserviceKit
+    .init()
     .then(() => {
-        const coreQueue = amqpKit.getQueue(QUEUE_NAME);
+        const coreQueue = microserviceKit.amqpKit.getQueue(QUEUE_NAME);
 
         coreQueue
             .sendEvent('deneme.job', {some: 'data!'}, {persistent: true})

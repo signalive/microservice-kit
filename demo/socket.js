@@ -3,40 +3,44 @@
 const MicroserviceKit = require('../src');
 
 
-const amqpKit = new MicroserviceKit.AmqpKit();
-
-amqpKit
-    .init({
-        // url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
-        alias: 'SocketWorker0',
+const microserviceKit = new MicroserviceKit({
+    type: 'socket-worker',
+    config: null, // Dont use config file!
+    amqp: {
         queues: [
             {
-                name: 'SocketWorker0.broadcast',
+                key: 'SocketWorker.broadcast',
                 options: {exclusive: true}
             },
             {
-                name: 'SocketWorker0.direct',
+                key: 'SocketWorker.direct',
                 options: {exclusive: true}
             }
         ],
         exchanges: [
             {
                 name: 'SocketWorker.broadcast',
+                key: 'SocketWorker.broadcast',
                 type: 'fanout',
                 options: {}
             },
             {
                 name: 'SocketWorker.direct',
+                key: 'SocketWorker.direct',
                 type: 'direct',
                 options: {}
             }
         ]
-    })
-    .then(() => {
-        console.log("Waiting for messages in %s and %s. To exit press CTRL+C", 'SocketWorker0.broadcast', 'SocketWorker0.direct');
+    }
+});
 
-        let broadcastQueue = amqpKit.getQueue('SocketWorker0.broadcast');
-        let directQueue = amqpKit.getQueue('SocketWorker0.direct');
+microserviceKit
+    .init()
+    .then(() => {
+        console.log("Waiting for messages in %s and %s. To exit press CTRL+C", 'SocketWorker.broadcast', 'SocketWorker.direct');
+
+        const broadcastQueue = microserviceKit.amqpKit.getQueue('SocketWorker.broadcast');
+        const directQueue = microserviceKit.amqpKit.getQueue('SocketWorker.direct');
 
         // Bind to broadcast exchange
         broadcastQueue.bind('SocketWorker.broadcast', '');
@@ -55,8 +59,12 @@ amqpKit
             directQueue.unbind('SocketWorker.direct', device.uuid);
         }
 
-        var device = {uuid: 'device-uuid'};
-        onDeviceConnect(device);
+        if (Math.random() >= 0.5) {
+            console.log('Connected device: `device-uuid`');
+            var device = {uuid: 'device-uuid'};
+            onDeviceConnect(device);
+        }
+
 
 
         /**

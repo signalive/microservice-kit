@@ -17,6 +17,7 @@ class Exchange {
 
         this.channel = options.channel;
         this.name = options.name || '';
+        this.key = options.key || this.name;
         this.type = options.type || 'direct';
         this.options = options.options || {};
         this.rpc_ = options.rpc;

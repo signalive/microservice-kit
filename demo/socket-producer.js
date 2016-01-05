@@ -2,31 +2,35 @@
 
 const MicroserviceKit = require('../src');
 
-const amqpKit = new MicroserviceKit.AmqpKit();
-
-amqpKit
-    .init({
-        url: 'amqp://arzcmdsz:jcN7Ft4AXKkMvcisYDEKu4fbqK-brTjH@hare.rmq.cloudamqp.com/arzcmdsz',
-        alias: 'SocketProducer0',
+const microserviceKit = new MicroserviceKit({
+    type: 'socket-producer',
+    config: null, // Dont use config file!
+    amqp: {
         exchanges: [
             {
                 name: 'SocketWorker.broadcast',
+                key: 'SocketWorker.broadcast',
                 type: 'fanout',
                 options: {}
             },
             {
                 name: 'SocketWorker.direct',
+                key: 'SocketWorker.direct',
                 type: 'direct',
                 options: {}
             }
         ]
-    })
+    }
+});
+
+microserviceKit
+    .init()
     .then(() => {
         // Run phase
         // Broadcast
 
-        let broadcastExchange = amqpKit.getExchange('SocketWorker.broadcast');
-        let directExchange = amqpKit.getExchange('SocketWorker.direct');
+        const broadcastExchange = microserviceKit.amqpKit.getExchange('SocketWorker.broadcast');
+        const directExchange = microserviceKit.amqpKit.getExchange('SocketWorker.direct');
 
         broadcastExchange
             .publishEvent(

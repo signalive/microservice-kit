@@ -21,7 +21,7 @@ class RPC {
     /**
      * Init rpc manager.
      */
-    init(connection) {
+    init(connection, opt_queueName) {
         debug('Initializing rpc channel.');
         return connection
                 .createChannel()
@@ -30,6 +30,7 @@ class RPC {
 
                     this.channel_ = channel;
                     this.queue_ = new Queue({
+                        name: opt_queueName,
                         options: {exclusive: true},
                         channel: this.channel_
                     });
