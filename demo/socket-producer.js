@@ -1,6 +1,8 @@
 'use strict';
 
 const MicroserviceKit = require('../src');
+const MicroserviceKitEnum = require('microservice-kit-enums');
+
 
 const microserviceKit = new MicroserviceKit({
     type: 'socket-producer',
@@ -8,13 +10,13 @@ const microserviceKit = new MicroserviceKit({
     amqp: {
         exchanges: [
             {
-                name: MicroserviceKit.Enum.Exchange.SOCKET_BROADCAST,
+                name: MicroserviceKitEnum.Exchange.SOCKET_BROADCAST,
                 key: 'socket-broadcast',
                 type: 'fanout',
                 options: {}
             },
             {
-                name: MicroserviceKit.Enum.Exchange.SOCKET_DIRECT,
+                name: MicroserviceKitEnum.Exchange.SOCKET_DIRECT,
                 key: 'socket-direct',
                 type: 'direct',
                 options: {}

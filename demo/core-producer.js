@@ -1,6 +1,7 @@
 'use strict';
 
 const MicroserviceKit = require('../src');
+const MicroserviceKitEnum = require('microservice-kit-enums');
 
 
 const microserviceKit = new MicroserviceKit({
@@ -9,7 +10,7 @@ const microserviceKit = new MicroserviceKit({
     amqp: {
         queues: [
             {
-                name: MicroserviceKit.Enum.Queue.CORE,
+                name: MicroserviceKitEnum.Queue.CORE,
                 key: 'core',
                 options: {durable: true}
             }
