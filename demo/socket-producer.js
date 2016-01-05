@@ -2,19 +2,38 @@
 
 const MicroserviceKit = require('../src');
 
+const microserviceKit = new MicroserviceKit({
+    type: 'socket-producer',
+    config: null, // Dont use config file!
+    amqp: {
+        exchanges: [
+            {
+                name: MicroserviceKit.Enum.Exchange.SOCKET_BROADCAST,
+                key: 'socket-broadcast',
+                type: 'fanout',
+                options: {}
+            },
+            {
+                name: MicroserviceKit.Enum.Exchange.SOCKET_DIRECT,
+                key: 'socket-direct',
+                type: 'direct',
+                options: {}
+            }
+        ]
+    }
+});
 
-const SOCKET_BROADCAST_EXCHANGE = 'signa.socket.broadcast';
-const SOCKET_DIRECT_EXCHANGE = 'signa.socket.direct';
-const amqpKit = new MicroserviceKit.AmqpKit();
-
-amqpKit
+microserviceKit
     .init()
     .then(() => {
         // Run phase
         // Broadcast
-        amqpKit
+
+        const broadcastExchange = microserviceKit.amqpKit.getExchange('socket-broadcast');
+        const directExchange = microserviceKit.amqpKit.getExchange('socket-direct');
+
+        broadcastExchange
             .publishEvent(
-                SOCKET_BROADCAST_EXCHANGE,
                 '',
                 'signa.socket.broadcast.update-channel',
                 {txt: 'channel update detail here.'},
@@ -27,9 +46,8 @@ amqpKit
                 console.log('Cannot send pubsub message.');
             });
 
-        amqpKit
+        broadcastExchange
             .publishEvent(
-                SOCKET_BROADCAST_EXCHANGE,
                 '',
                 'signa.socket.broadcast.new-app-version',
                 {txt: 'new app version falan.'},
@@ -43,9 +61,8 @@ amqpKit
             });
 
         // Direct
-        amqpKit
+        directExchange
             .publishEvent(
-                SOCKET_DIRECT_EXCHANGE,
                 'device-uuid',
                 'signa.socket.direct.update-device',
                 {txt:'Update device falan.'}
@@ -54,12 +71,11 @@ amqpKit
                 console.log('Positive response: ' + JSON.stringify(response));
             })
             .catch((err) => {
-                console.log('Negative response: ' + JSON.stringify(err));
+                console.log('Negative response: ' + err);
             });
 
-        amqpKit
+        directExchange
             .publishEvent(
-                SOCKET_DIRECT_EXCHANGE,
                 'device-uuid',
                 'signa.socket.direct.screenshot',
                 {txt:'Screenshot request kanka.'}
@@ -68,7 +84,7 @@ amqpKit
                 console.log('Positive response: ' + JSON.stringify(response));
             })
             .catch((err) => {
-                console.log('Negative response: ' + JSON.stringify(err));
+                console.log('Negative response: ' + err);
             });
 
     })

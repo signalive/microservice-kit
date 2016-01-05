@@ -1,5 +1,6 @@
 'use strict';
 
+const async = require('async-q');
 const _ = require('lodash');
 const amqp = require('amqplib');
 const uuid = require('node-uuid');
@@ -8,62 +9,75 @@ const debug = require('debug')('microservicekit:amqpkit');
 const Message = require('./lib/message');
 const Response = require('./lib/response');
 const Router = require('./lib/router');
+const Queue = require('./lib/queue');
+const Exchange = require('./lib/exchange');
+const RPC = require('./lib/rpc');
 const ShutdownKit = require('./shutdownkit');
 
 
 class AmqpKit {
     /**
-     *
      * @param {Object=} opt_options
+     *                    url, rpc, queues, exchanges
      */
     constructor(opt_options) {
         this.options_ = _.assign({}, this.defaults, opt_options || {});
+
         this.connection = null;
         this.channel = null;
-        this.rpcQueue_ = null;
-        this.rpcChannel_ = null;
-        this.callbacks_ = {};
-        this.consumers_ = {};
-        this.routers_ = {};
+        this.rpc_ = null;
+        this.queues_ = {};
+        this.exchanges_ = {};
     }
 
 
     /**
      * Connects to rabbitmq, creates channel and creates rpc queue if needed.
-     * @param {string=} opt_url
      * @return {Promise.<this>}
      */
-    init(opt_url) {
+    init() {
+        if (this.options_.exchanges && !Array.isArray(this.options_.exchanges))
+            throw new Error('MicroserviceKit init failed. ' +
+                'options.exchanges must be an array.');
+
+        if (this.options_.queues && !Array.isArray(this.options_.queues))
+            throw new Error('MicroserviceKit init failed. ' +
+                'options.queues must be an array.');
+
         return amqp
-            .connect(opt_url)
+            .connect(this.options_.url)
             .then((connection) => {
                 this.connection = connection;
                 var jobs = [
                     connection.createChannel()
                 ];
 
-                if (this.options_.rpc)
-                    jobs.push(connection.createChannel());
+                if (this.options_.rpc) {
+                    this.rpc_ = new RPC();
+                    const rpcQueueName = this.options_.id + '-rpc';
+                    jobs.push(this.rpc_.init(connection, rpcQueueName));
+                }
 
                 return Promise.all(jobs);
             })
             .then((channels) => {
-                // TODO: Listen and handle connection's and channel's closed, disconnect, error events.
                 this.channel = channels[0];
-
-                if (this.options_.rpc && channels[1]) {
-                    this.rpcChannel_ = channels[1];
-                    return this.rpcChannel_.assertQueue('', {exclusive: true});
-                }
-            })
-            .then((queue) => {
-                if (queue && queue.queue) {
-                    this.rpcQueue_ = queue.queue;
-                    this.rpcChannel_.consume(this.rpcQueue_, this.consumeRpc_.bind(this), {noAck: true});
-                }
-
                 this.bindEvents();
                 return this;
+            })
+            .then(() => {
+                const queues = this.options_.queues || [];
+                debug('Asserting ' + queues.length + ' queues');
+                return async.mapLimit(queues, 5, (item, index) => {
+                    return this.createQueue(item.key, item.name, item.options);
+                })
+            })
+            .then(() => {
+                const exchanges = this.options_.exchanges || [];
+                debug('Asserting ' + exchanges.length + ' exchanges');
+                return async.mapLimit(exchanges, 5, (item, index) => {
+                    return this.createExchange(item.key, item.name, item.type, item.options);
+                })
             });
     }
 
@@ -101,72 +115,6 @@ class AmqpKit {
 
 
     /**
-     * Handles messages coming from rpc queue.
-     * @param {Object} msg
-     */
-    consumeRpc_(msg) {
-        const correlationId = msg.properties.correlationId;
-
-        if (!this.options_.rpc || !correlationId || !this.callbacks_[correlationId])
-            return;
-
-        const callbacks = this.callbacks_[correlationId];
-
-        try {
-            const response = Response.parseMessage(msg);
-
-            if (!response.done) {
-                callbacks.progress && callbacks.progress(response.payload);
-                return;
-            }
-
-            if (response.err)
-                callbacks.reject(response.err);
-            else
-                callbacks.resolve(response.payload);
-
-            delete this.callbacks_[correlationId];
-        } catch(err) {
-            debug('Cannot consume rpc message, probably json parse error.');
-            debug('Message:', msg);
-            debug('Error:', err);
-        }
-    }
-
-
-    /**
-     * assertQueue wrapper function.
-     */
-    assertQueue(queue, opt_options) {
-        return this.channel.assertQueue(queue, opt_options);
-    }
-
-
-    /**
-     * assertExchange wrapper function.
-     */
-    assertExchange(queue, type, opt_options) {
-        return this.channel.assertExchange(queue, type, opt_options);
-    }
-
-
-    /**
-     * bindQueue wrapper function.
-     */
-    bindQueue(queue, exchange, pattern) {
-        return this.channel.bindQueue(queue, exchange, pattern);
-    }
-
-
-    /**
-     * unbindQueue wrapper function.
-     */
-    unbindQueue(queue, exchange, pattern) {
-        return this.channel.bindQueue(queue, exchange, pattern);
-    }
-
-
-    /**
      * prefetch wrapper function.
      */
     prefetch(count, opt_global) {
@@ -174,174 +122,87 @@ class AmqpKit {
     }
 
 
+
     /**
-     * Publishes a message on main channel. Its just implements callback (rpc)
-     * support and json stringifying data.
-     * TODO: Implement timeout.
-     * @param {string} exchange
-     * @param {string} routingKey
-     * @param {Object=} opt_data
+     * Returns queue by key
+     * @param {string} queueKey
+     */
+    getQueue(queueKey) {
+        return this.queues_[queueKey];
+    }
+
+
+    /**
+     * Returns echange by key
+     * @param {string} exchangeKey
+     */
+    getExchange(exchangeKey) {
+        return this.exchanges_[exchangeKey];
+    }
+
+
+    /**
+     * Creates a queue.
+     * @param {string} key
+     * @param {string} name
      * @param {Object=} opt_options
      * @return {Promise}
      */
-    publish(exchange, routingKey, opt_data, opt_options) {
-        const options = _.assign({}, this.publishDefaults, opt_options || {});
-        const content = new Buffer(JSON.stringify(opt_data || {}));
+    createQueue(key, name, opt_options) {
+        if (!key)
+            return Promise.reject(new Error('You cannot create queue without key.'));
 
-        if (!this.options_.rpc || options.dontExpectRpc)
-            return Promise.resolve(this.channel.publish(exchange, routingKey, content, options));
+        if (this.queues_[key])
+            return Promise.reject(new Error('You cannot create queue with same key more than once.'));
 
-        options.correlationId = uuid.v4();
-        options.replyTo = this.rpcQueue_;
+        if (!name && opt_options && opt_options.exclusive)
+            name = this.options_.id + '-' + 'excl' + '-' + uuid.v4().split('-')[0];
 
-        const rv = new Promise((resolve, reject) => {
-            this.channel.publish(exchange, routingKey, content, options);
-            this.callbacks_[options.correlationId] = {reject, resolve};
+        const queue = new Queue({
+            channel: this.channel,
+            name: name,
+            options: opt_options,
+            rpc: this.rpc_
         });
 
-        rv.progress = (callback) => {
-            if (this.callbacks_[options.correlationId])
-                this.callbacks_[options.correlationId].progress = callback;
-
-            return rv;
-        };
-
-        return rv;
+        return queue.init()
+            .then(() => {
+                this.queues_[key] = queue;
+                debug('Asserted queue: ' + queue.name);
+                return queue;
+            });
     }
 
 
     /**
-     * Brings eventName support for main publish method above.
-     * @param {string} exchange
-     * @param {string} routingKey
-     * @param {string} eventName
-     * @param {Object=} opt_payload
+     * Creates an exchange.
+     * @param {string} key
+     * @param {string} name
+     * @param {string} type
      * @param {Object=} opt_options
      * @return {Promise}
      */
-    publishEvent(exchange, routingKey, eventName, opt_payload, opt_options) {
-        const message = new Message(eventName, opt_payload);
-        return this.publish(exchange, routingKey, message.toJSON(), opt_options);
-    }
+    createExchange(key, name, type, opt_options) {
+        if (!key)
+            return Promise.reject(new Error('You cannot create exchange without key.'));
 
+        if (this.exchanges_[key])
+            return Promise.reject(new Error('You cannot create exchange with same key more than once.'));
 
-    /**
-     * Sends a message to queue on main channel. Its just implements callback (rpc)
-     * support and json stringifying data.
-     * TODO: Implement timeout.
-     * @param {string} queue
-     * @param {Object=} opt_data
-     * @param {Object=} opt_options
-     * @return {Promise}
-     */
-    sendToQueue(queue, opt_data, opt_options) {
-        const options = _.assign({}, this.publishDefaults, opt_options || {});
-        const content = new Buffer(JSON.stringify(opt_data || {}));
-
-        if (!this.options_.rpc || options.dontExpectRpc)
-            return Promise.resolve(this.channel.sendToQueue(queue, content, options));
-
-        options.correlationId = uuid.v4();
-        options.replyTo = this.rpcQueue_;
-
-        const rv = new Promise((resolve, reject) => {
-            this.channel.sendToQueue(queue, content, options);
-            this.callbacks_[options.correlationId] = {resolve, reject};
+        const exchange = new Exchange({
+            channel: this.channel,
+            name: name,
+            type: type,
+            options: opt_options,
+            rpc: this.rpc_
         });
 
-        rv.progress = (callback) => {
-            if (this.callbacks_[options.correlationId])
-                this.callbacks_[options.correlationId].progress = callback;
-
-            return rv;
-        };
-
-        return rv;
-    }
-
-
-    /**
-     * Brings eventName support for main publish method above.
-     * @param {string} queue
-     * @param {string} eventName
-     * @param {Object=} opt_payload
-     * @param {Object=} opt_options
-     * @return {Promise}
-     */
-    sendEventToQueue(queue, eventName, opt_payload, opt_options) {
-        const message = new Message(eventName, opt_payload);
-        return this.sendToQueue(queue, message.toJSON(), opt_options);
-    }
-
-
-    /**
-     * Consumes all the messages on a queue.
-     * @param {string} queue
-     * @param {Function} callback
-     * @param {Object=} opt_options
-     */
-    consume(queue, callback, opt_options) {
-        const options = _.assign({}, this.consumeDefaults, opt_options || {});
-        this.consumers_[queue] = callback;
-
-        return this.channel.consume(queue, (msg) => {
-            try {
-                const data = JSON.parse(msg.content.toString());
-
-                const done = (err, data) => {
-                    if (msg.properties.replyTo && msg.properties.correlationId) {
-                        const response = new Response(err, data, true);
-                        this.channel.sendToQueue(
-                            msg.properties.replyTo,
-                            new Buffer(JSON.stringify(response.toJSON())),
-                            {correlationId: msg.properties.correlationId}
-                        );
-                    }
-
-                    if (!options.noAck)
-                        this.channel.ack(msg);
-                };
-
-                const progress = (data) => {
-                    if (msg.properties.replyTo && msg.properties.correlationId) {
-                        const response = new Response(null, data, false);
-                        this.channel.sendToQueue(
-                            msg.properties.replyTo,
-                            new Buffer(JSON.stringify(response.toJSON())),
-                            {correlationId: msg.properties.correlationId}
-                        );
-                    }
-                }
-
-                this.consumers_[queue] && this.consumers_[queue](data, done, progress);
-            } catch(err) {
-                debug('Error while consuming message:' + msg.content);
-                debug(err.stack);
-
-                if (!options.noAck) {
-                    debug('Negative acknowledging...');
-                    this.channel.nack(msg);
-                }
-            }
-        }, options);
-    }
-
-
-    /**
-     * Consumes just matched events in queue.
-     * @param {string} queue
-     * @param {string} eventName
-     * @param {Function} callback
-     * @param {Object=} opt_options
-     */
-    consumeEvent(queue, eventName, callback, opt_options) {
-        if (!this.consumers_[queue]) {
-            const router = new Router();
-            this.routers_[queue] = router;
-            this.consume(queue, router.handle.bind(router), opt_options);
-        }
-
-        this.routers_[queue].register(eventName, callback);
+        return exchange.init()
+            .then((exchange) => {
+                this.exchanges_[key] = exchange;
+                debug('Asserted exchange: ' + exchange.name);
+                return exchange;
+            });
     }
 }
 
@@ -351,26 +212,8 @@ class AmqpKit {
  * @type {Object}
  */
 AmqpKit.prototype.defaults = {
-    alias: 'microservice',
+    id: 'microservice-default-id',
     rpc: true
-};
-
-
-/**
- * Default consume options.
- * @type {Object}
- */
-AmqpKit.prototype.consumeDefaults = {
-    noAck: false
-};
-
-
-/**
- * Default publish & sendToQueue options.
- * @type {Object}
- */
-AmqpKit.prototype.publishDefaults = {
-    dontExpectRpc: false
 };
 
 

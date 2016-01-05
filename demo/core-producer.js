@@ -3,16 +3,27 @@
 const MicroserviceKit = require('../src');
 
 
-const QUEUE_NAME = 'signa.core';
-const amqpKit = new MicroserviceKit.AmqpKit();
+const microserviceKit = new MicroserviceKit({
+    type: 'some-core-producer-worker',
+    config: null, // Dont use config file!
+    amqp: {
+        queues: [
+            {
+                name: MicroserviceKit.Enum.Queue.CORE,
+                key: 'core',
+                options: {durable: true}
+            }
+        ]
+    }
+});
 
-amqpKit
+microserviceKit
     .init()
     .then(() => {
-        // Run phase
-        // Add message to queue
-        amqpKit
-            .sendEventToQueue(QUEUE_NAME, 'deneme.job', {some: 'data!'}, {persistent: true})
+        const coreQueue = microserviceKit.amqpKit.getQueue('core');
+
+        coreQueue
+            .sendEvent('deneme.job', {some: 'data!'}, {persistent: true})
             .progress((data) => {
                 console.log('Progressing...' + JSON.stringify(data));
             })
@@ -25,5 +36,5 @@ amqpKit
     })
     .catch((err) => {
         console.log('Cannot boot');
-        console.log(err);
+        console.log(err.stack);
     });

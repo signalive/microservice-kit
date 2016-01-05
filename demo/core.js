@@ -3,21 +3,30 @@
 const MicroserviceKit = require('../src');
 
 
-const QUEUE_NAME = 'signa.core';
-const amqpKit = new MicroserviceKit.AmqpKit();
+const microserviceKit = new MicroserviceKit({
+    type: 'core-worker',
+    config: null, // Dont use config file!
+    amqp: {
+        queues: [
+            {
+                name: MicroserviceKit.Enum.Queue.CORE,
+                key: 'core',
+                options: {durable: true}
+            }
+        ]
+    }
+});
 
-amqpKit
+microserviceKit
     .init()
     .then(() => {
-        // Config phase
-        return amqpKit.assertQueue(QUEUE_NAME, {durable: true});
-    })
-    .then(() => {
         // Run phase
-        console.log("Waiting for messages in %s. To exit press CTRL+C", QUEUE_NAME);
+        console.log("Waiting for messages in %s. To exit press CTRL+C", 'core');
+
+        const coreQueue = microserviceKit.amqpKit.getQueue('core');
 
         // Consume some core jobs!
-        amqpKit.consumeEvent(QUEUE_NAME, 'deneme.job', (data, callback, progress) => {
+        coreQueue.consumeEvent('deneme.job', (data, callback, progress) => {
             console.log("Received: " + JSON.stringify(data));
 
             // Dummy progress events
