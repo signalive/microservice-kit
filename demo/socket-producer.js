@@ -8,14 +8,14 @@ const microserviceKit = new MicroserviceKit({
     amqp: {
         exchanges: [
             {
-                name: 'SocketWorker.broadcast',
-                key: 'SocketWorker.broadcast',
+                name: MicroserviceKit.Enum.Exchange.SOCKET_BROADCAST,
+                key: 'socket-broadcast',
                 type: 'fanout',
                 options: {}
             },
             {
-                name: 'SocketWorker.direct',
-                key: 'SocketWorker.direct',
+                name: MicroserviceKit.Enum.Exchange.SOCKET_DIRECT,
+                key: 'socket-direct',
                 type: 'direct',
                 options: {}
             }
@@ -29,8 +29,8 @@ microserviceKit
         // Run phase
         // Broadcast
 
-        const broadcastExchange = microserviceKit.amqpKit.getExchange('SocketWorker.broadcast');
-        const directExchange = microserviceKit.amqpKit.getExchange('SocketWorker.direct');
+        const broadcastExchange = microserviceKit.amqpKit.getExchange('socket-broadcast');
+        const directExchange = microserviceKit.amqpKit.getExchange('socket-direct');
 
         broadcastExchange
             .publishEvent(

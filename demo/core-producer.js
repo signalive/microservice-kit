@@ -3,15 +3,14 @@
 const MicroserviceKit = require('../src');
 
 
-const QUEUE_NAME = 'signa.core';
 const microserviceKit = new MicroserviceKit({
-    type: 'core-producer',
+    type: 'some-core-producer-worker',
     config: null, // Dont use config file!
     amqp: {
         queues: [
             {
-                name: QUEUE_NAME,
-                key: QUEUE_NAME,
+                name: MicroserviceKit.Enum.Queue.CORE,
+                key: 'core',
                 options: {durable: true}
             }
         ]
@@ -21,7 +20,7 @@ const microserviceKit = new MicroserviceKit({
 microserviceKit
     .init()
     .then(() => {
-        const coreQueue = microserviceKit.amqpKit.getQueue(QUEUE_NAME);
+        const coreQueue = microserviceKit.amqpKit.getQueue('core');
 
         coreQueue
             .sendEvent('deneme.job', {some: 'data!'}, {persistent: true})

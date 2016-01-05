@@ -9,24 +9,24 @@ const microserviceKit = new MicroserviceKit({
     amqp: {
         queues: [
             {
-                key: 'SocketWorker.broadcast',
+                key: 'broadcast',
                 options: {exclusive: true}
             },
             {
-                key: 'SocketWorker.direct',
+                key: 'direct',
                 options: {exclusive: true}
             }
         ],
         exchanges: [
             {
-                name: 'SocketWorker.broadcast',
-                key: 'SocketWorker.broadcast',
+                name: MicroserviceKit.Enum.Exchange.SOCKET_BROADCAST,
+                key: 'socket-broadcast',
                 type: 'fanout',
                 options: {}
             },
             {
-                name: 'SocketWorker.direct',
-                key: 'SocketWorker.direct',
+                name: MicroserviceKit.Enum.Exchange.SOCKET_DIRECT,
+                key: 'socket-direct',
                 type: 'direct',
                 options: {}
             }
@@ -37,26 +37,26 @@ const microserviceKit = new MicroserviceKit({
 microserviceKit
     .init()
     .then(() => {
-        console.log("Waiting for messages in %s and %s. To exit press CTRL+C", 'SocketWorker.broadcast', 'SocketWorker.direct');
+        console.log("Waiting for messages in %s and %s. To exit press CTRL+C", 'broadcast', 'direct');
 
-        const broadcastQueue = microserviceKit.amqpKit.getQueue('SocketWorker.broadcast');
-        const directQueue = microserviceKit.amqpKit.getQueue('SocketWorker.direct');
+        const broadcastQueue = microserviceKit.amqpKit.getQueue('broadcast');
+        const directQueue = microserviceKit.amqpKit.getQueue('direct');
 
         // Bind to broadcast exchange
-        broadcastQueue.bind('SocketWorker.broadcast', '');
+        broadcastQueue.bind(MicroserviceKit.Enum.Exchange.SOCKET_BROADCAST, '');
 
         /**
          * On device connect
          */
         function onDeviceConnect(device) {
-            directQueue.bind('SocketWorker.direct', device.uuid);
+            directQueue.bind(MicroserviceKit.Enum.Exchange.SOCKET_DIRECT, device.uuid);
         }
 
         /**
          * On device disconnect
          */
         function onDeviceDisconnect(device) {
-            directQueue.unbind('SocketWorker.direct', device.uuid);
+            directQueue.unbind(MicroserviceKit.Enum.Exchange.SOCKET_DIRECT, device.uuid);
         }
 
         if (Math.random() >= 0.5) {
