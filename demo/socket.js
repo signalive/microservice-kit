@@ -1,7 +1,6 @@
 'use strict';
 
 const MicroserviceKit = require('../src');
-const MicroserviceKitEnum = require('microservice-kit-enums');
 
 
 const microserviceKit = new MicroserviceKit({
@@ -20,13 +19,13 @@ const microserviceKit = new MicroserviceKit({
         ],
         exchanges: [
             {
-                name: MicroserviceKitEnum.Exchange.SOCKET_BROADCAST,
+                name: 'socket-broadcast',
                 key: 'socket-broadcast',
                 type: 'fanout',
                 options: {}
             },
             {
-                name: MicroserviceKitEnum.Exchange.SOCKET_DIRECT,
+                name: 'socket-direct',
                 key: 'socket-direct',
                 type: 'direct',
                 options: {}
@@ -44,20 +43,20 @@ microserviceKit
         const directQueue = microserviceKit.amqpKit.getQueue('direct');
 
         // Bind to broadcast exchange
-        broadcastQueue.bind(MicroserviceKitEnum.Exchange.SOCKET_BROADCAST, '');
+        broadcastQueue.bind('socket-broadcast', '');
 
         /**
          * On device connect
          */
         function onDeviceConnect(device) {
-            directQueue.bind(MicroserviceKitEnum.Exchange.SOCKET_DIRECT, device.uuid);
+            directQueue.bind('socket-direct', device.uuid);
         }
 
         /**
          * On device disconnect
          */
         function onDeviceDisconnect(device) {
-            directQueue.unbind(MicroserviceKitEnum.Exchange.SOCKET_DIRECT, device.uuid);
+            directQueue.unbind('socket-direct', device.uuid);
         }
 
         if (Math.random() >= 0.5) {
