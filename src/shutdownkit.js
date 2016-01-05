@@ -40,7 +40,7 @@ class ShutdownKit {
     onUncaughtException_(err) {
         debug('Uncaught Exception recieved!');
         debug(err.stack);
-        this.gracefulShutdown_();
+        this.gracefulShutdown();
     }
 
 
@@ -49,7 +49,7 @@ class ShutdownKit {
      */
     onSigTerm_() {
         debug('SIGTERM recieved!');
-        this.gracefulShutdown_();
+        this.gracefulShutdown();
     }
 
 
@@ -58,14 +58,14 @@ class ShutdownKit {
      */
     onSigInt_() {
         debug('SIGINT recieved!');
-        this.gracefulShutdown_();
+        this.gracefulShutdown();
     }
 
 
     /**
      * Tries to do all the jobs before shutdown.
      */
-    gracefulShutdown_() {
+    gracefulShutdown() {
         // TODO: Add a timeout maybe?
         debug('Trying to shutdown gracefully...');
         async.parallel(this.jobs_, (err) => {
