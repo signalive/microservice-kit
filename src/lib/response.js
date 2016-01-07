@@ -1,6 +1,8 @@
 'use strict';
 
 const _ = require('lodash');
+const Errors = require('./errors');
+
 
 
 class Response {
@@ -22,8 +24,13 @@ class Response {
      * @return {Object}
      */
     toJSON() {
+        let err = this.err;
+
+        if (_.isObject(err) && err instanceof Error && err.name == 'Error')
+            err = {message: err.message, name: 'Error'};
+
         return {
-            err: this.err,
+            err,
             payload: this.payload,
             done: this.done
         };
@@ -48,7 +55,23 @@ class Response {
      * @return {Message}
      */
     static parse(raw) {
-        return new Response(raw.err, raw.payload, raw.done);
+        let err = raw.err;
+
+        if (_.isObject(err) && err.name) {
+            switch (err.name) {
+                case 'Error':
+                    err = new Errors.Error(err.message);
+                    break;
+                case 'InternalError':
+                    err = new Errors.InternalError(err.message);
+                    break;
+                case 'ClientError':
+                    err = new Errors.ClientError(err.message);
+                    break;
+            }
+        }
+
+        return new Response(err, raw.payload, raw.done);
     }
 }
 
