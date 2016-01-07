@@ -1,6 +1,7 @@
 'use strict';
 
 const MicroserviceKit = require('../src');
+const Errors = require('../src/lib/errors');
 
 
 const microserviceKit = new MicroserviceKit({
@@ -9,7 +10,7 @@ const microserviceKit = new MicroserviceKit({
     amqp: {
         queues: [
             {
-                name: core,
+                name: 'core',
                 key: 'core',
                 options: {durable: true}
             }
@@ -31,7 +32,7 @@ microserviceKit
                 console.log('Positive response: ' + JSON.stringify(response));
             })
             .catch((err) => {
-                console.log('Negative response: ' + JSON.stringify(err));
+                console.log('Negative response: ', err);
             });
     })
     .catch((err) => {

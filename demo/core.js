@@ -1,6 +1,7 @@
 'use strict';
 
 const MicroserviceKit = require('../src');
+const Errors = require('../src/lib/errors');
 
 
 const microserviceKit = new MicroserviceKit({
@@ -38,8 +39,8 @@ microserviceKit
             // Dummy complete job.
             setTimeout(() => {
                 clearInterval(interval);
-                // callback({some: 'error.'});
-                callback(null, {some: 'Responseee!'});
+                 callback(new Errors.ClientError('Anaynin amugg'));
+                //callback(null, {some: 'Responseee!'});
                 console.log('Done.');
             }, 5000);
         });
