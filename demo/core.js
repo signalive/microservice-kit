@@ -14,9 +14,22 @@ const microserviceKit = new MicroserviceKit({
                 key: 'core',
                 options: {durable: true}
             }
-        ]
+        ],
+        logger: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift('[amqpkit]');
+            console.log.apply(console, args);
+        }
+    },
+    shutdown: {
+        logger: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift('[shutdownkit]');
+            console.log.apply(console, args);
+        }
     }
 });
+
 
 microserviceKit
     .init()

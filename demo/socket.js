@@ -30,7 +30,12 @@ const microserviceKit = new MicroserviceKit({
                 type: 'direct',
                 options: {}
             }
-        ]
+        ],
+        logger: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift('[amqpkit]');
+            console.log.apply(console, args);
+        }
     }
 });
 
