@@ -1,11 +1,11 @@
 # microservice-kit
 
-Utility belt for microservices.
+Utility belt for building microservices.
 
 ## Quick Start
 
-- Check out [/demos](https://github.com/signalive/microservice-kit/tree/master/demo) folder
-- [A boilerplate for your new microservices](https://github.com/signalive/microservice-boilerplate)
+- Check out [/demo](https://github.com/signalive/microservice-kit/tree/master/demo) folder
+- [A boilerplate for your new microservice](https://github.com/signalive/microservice-boilerplate)
 
 # API Reference
 
