@@ -27,7 +27,7 @@ Name|Type|Description
 ----|----|-----------
 options.type="microservice"|String|Type of the microservice. This name will be used as prefix in generating unique name. This is helpful when differentiating microservice instances.
 options.amqp|Object|This object will be pass to AmqpKit when creating instance. See AmqpKit's docs for detail.
-[options.shutdown.logger=null]|Function|This function will be passed into `ShutdownKit.setLogger` method. 
+[options.shutdown.logger=null]|Function|This function will be passed into `ShutdownKit.setLogger` method.
 
 ##### Sample
 
@@ -106,6 +106,7 @@ You can reach AmqpKit class like above. However, if you create a MicroserviceKit
 
 Param|Type|Description
 -----|----|-----------
+[options.url]|String|AMQP connection string. Ex: `amqp://localhost`
 [options.rpc=true]|Boolean|If you don't need to use callbacks for amqp communication, you can use `false`. If so, an extra rpc channel and queue will not be created. Default `true`.
 options.queues=[]|Array|This queues will be asserted in `init` flow.
 [options.queues[].name]|String|Name of queue on RabbitMQ. Optional. Do not pass any parameter if you want to create an exclusive queue. It will be generated automatically.
@@ -222,7 +223,7 @@ Native `ampqlib`s channel instance that will be used commonly. See [offical docs
 
 ## Class AmqpKit.Queue
 
-This class is not exposed to user. When you do `amqpKit.getQueue()` or `amqpKit.createChannel()`, what you get is an instance of this class.
+This class is not exposed to user. When you do `amqpKit.getQueue()` or `amqpKit.createQueue()`, what you get is an instance of this class.
 
 #### `AmqpKit.Queue.prototype.consumeEvent(eventName, callback, [options={}])`
 
@@ -258,7 +259,7 @@ coreQueue.consumeEvent('get-device', (payload, done, progress) => {
 
 #### `AmqpKit.Queue.prototype.bind(exhange, pattern)` -> `Promise`
 
-Assert a routing pattern from an exchange to the queue: the exchange named by source will relay messages to the queue named, according to the type of the exchange and the pattern given. 
+Assert a routing pattern from an exchange to the queue: the exchange named by source will relay messages to the queue named, according to the type of the exchange and the pattern given.
 
 ##### Params
 
