@@ -37,7 +37,7 @@ class Queue {
     }
 
 
-    consume_(consumeCallback, options) {
+    consumeRaw_(consumeCallback, options) {
         this.channel.consume(this.getUniqueName(), consumeCallback, options || {});
     }
 
@@ -47,7 +47,7 @@ class Queue {
      * @param {Function} callback
      * @param {Object=} opt_options
      */
-    consume(callback, opt_options) {
+    consume_(callback, opt_options) {
         const options = _.assign({}, this.consumeDefaults, opt_options || {});
         this.consumer_ = callback;
 
@@ -103,7 +103,7 @@ class Queue {
     consumeEvent(eventName, callback, opt_options) {
         if (!this.consumer_) {
             this.router = new Router(this.getUniqueName());
-            this.consume(this.router.handle.bind(this.router), opt_options);
+            this.consume_(this.router.handle.bind(this.router), opt_options);
         }
 
         this.router.register(eventName, callback);
@@ -131,23 +131,32 @@ class Queue {
         return this.channel.unbindQueue(this.getUniqueName(), exchange, pattern);
     }
 
+
+    /**
+     * Returns real queue name on rabbitmq.
+     * @return {string}
+     */
     getUniqueName() {
         return this.queue_.queue;
     }
 
 
     /**
-     * Sends a message to queue on main channel. Its just implements callback (rpc)
-     * support and json stringifying data.
-     * TODO: Implement timeout.
-     * @param {Object=} opt_data
+     * Sends an event to queue on main channel. Its just implements callback (rpc)
+     * support.
+     * @param {string} eventName
+     * @param {Object=} opt_payload
      * @param {Object=} opt_options
      * @return {Promise}
      */
-    send(opt_data, opt_options) {
+    sendEvent(eventName, opt_payload, opt_options) {
+        if (!_.isString(eventName))
+            return Promise.reject(new Error('Cannot send event to queue. Event name is required.'));
+
+        const message = new Message(eventName, opt_payload);
         const queue = this.getUniqueName();
         const options = _.assign({}, Exchange.publishDefaults, opt_options || {});
-        const content = new Buffer(JSON.stringify(opt_data || {}));
+        const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
         if (!this.rpc_ || options.dontExpectRpc)
             return Promise.resolve(this.channel.sendToQueue(queue, content, options));
@@ -169,19 +178,6 @@ class Queue {
         };
 
         return rv;
-    }
-
-
-    /**
-     * Brings eventName support for main publish method above.
-     * @param {string} eventName
-     * @param {Object=} opt_payload
-     * @param {Object=} opt_options
-     * @return {Promise}
-     */
-    sendEvent(eventName, opt_payload, opt_options) {
-        const message = new Message(eventName, opt_payload);
-        return this.send(message.toJSON(), opt_options);
     }
 }
 

@@ -41,8 +41,7 @@ class RPC {
                 .then(() => {
                     debug('rpc queue initialized.');
                     debug('Consuming rpc queue...');
-                    return this.queue_
-                            .consume_(this.consumer.bind(this), {noAck: true});
+                    return this.queue_.consumeRaw_(this.consumer.bind(this), {noAck: true});
                 })
                 .then(() => {
                     debug('rpc initialized.');
@@ -96,6 +95,7 @@ class RPC {
 
     registerCallback(key, funcs, opt_timeout) {
         this.callbacks_[key] = funcs;
+        // TODO: this.durations_[key]
 
         if (_.isNumber(opt_timeout) && opt_timeout > 0) {
             this.timeouts_[key] = setTimeout(() => {

@@ -39,17 +39,21 @@ class Exchange {
 
 
     /**
-     * Publishes a message on this exchange. Its just implements callback (rpc)
-     * support and json stringifying data.
-     * TODO: Implement timeout.
+     * Publishes an event on this exchange. Its just implements callback (rpc)
+     * support
      * @param {string} routingKey
-     * @param {Object=} opt_data
+     * @param {string} eventName
+     * @param {Object=} opt_payload
      * @param {Object=} opt_options
      * @return {Promise}
      */
-    publish(routingKey, opt_data, opt_options) {
+    publishEvent(routingKey, eventName, opt_payload, opt_options) {
+        if (!_.isString(eventName))
+            return Promise.reject(new Error('Cannot publish. Event name is required.'));
+
+        const message = new Message(eventName, opt_payload);
         const options = _.assign({}, this.publishDefaults, opt_options || {});
-        const content = new Buffer(JSON.stringify(opt_data || {}));
+        const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
         if (!this.rpc_ || options.dontExpectRpc)
             return Promise.resolve(this.channel.publish(this.name, routingKey, content, options));
@@ -71,20 +75,6 @@ class Exchange {
         };
 
         return rv;
-    }
-
-
-    /**
-     * Brings eventName support for main publish method above.
-     * @param {string} routingKey
-     * @param {string} eventName
-     * @param {Object=} opt_payload
-     * @param {Object=} opt_options
-     * @return {Promise}
-     */
-    publishEvent(routingKey, eventName, opt_payload, opt_options) {
-        const message = new Message(eventName, opt_payload);
-        return this.publish(routingKey, message.toJSON(), opt_options);
     }
 
 }
