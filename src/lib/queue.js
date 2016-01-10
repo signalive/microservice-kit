@@ -20,6 +20,7 @@ class Queue {
         this.channel = options.channel;
         this.name = options.name || '';
         this.rpc_ = options.rpc;
+        this.logger_ = options.logger;
         this.options = options.options || {};
     }
 
@@ -55,6 +56,14 @@ class Queue {
             try {
                 const data = JSON.parse(msg.content.toString());
 
+                const message = Message.parse(data);
+                const recievedAt = new Date();
+
+                if (msg.properties.correlationId)
+                    this.log_('Recieved ' + message.eventName + ' event with correlation id ' + msg.properties.correlationId);
+                else
+                    this.log_('Recieved ' + message.eventName + ' event without correlation');
+
                 const done = (err, data) => {
                     if (msg.properties.replyTo && msg.properties.correlationId) {
                         const response = new Response(err, data, true);
@@ -63,7 +72,12 @@ class Queue {
                             new Buffer(JSON.stringify(response.toJSON())),
                             {correlationId: msg.properties.correlationId}
                         );
-                    }
+
+                        this.log_('Consumed ' + message.eventName + ' event with correlation id ' +
+                            msg.properties.correlationId + ' in ' + (new Date() - recievedAt) + ' ms');
+                    } else
+                        this.log_('Consumed ' + message.eventName + ' event without correlation ' +
+                            msg.properties.correlationId + ' in ' + (new Date() - recievedAt) + ' ms');
 
                     if (!options.noAck)
                         this.channel.ack(msg);
@@ -82,11 +96,11 @@ class Queue {
 
                 this.consumer_ && this.consumer_(data, done, progress);
             } catch(err) {
-                debug('Error while consuming message:' + msg.content);
-                debug(err.stack);
+                this.log_('Error while consuming message:' + msg.content);
+                this.log_(err.stack);
 
                 if (!options.noAck) {
-                    debug('Negative acknowledging...');
+                    this.log_('Negative acknowledging...');
                     this.channel.nack(msg);
                 }
             }
@@ -158,13 +172,16 @@ class Queue {
         const options = _.assign({}, Exchange.publishDefaults, opt_options || {});
         const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
-        if (!this.rpc_ || options.dontExpectRpc)
+        if (!this.rpc_ || options.dontExpectRpc) {
+            this.log_('Sending ' + eventName + ' event to queue ' + (this.name || this.getUniqueName()) + ' without rpc');
             return Promise.resolve(this.channel.sendToQueue(queue, content, options));
+        }
 
         options.correlationId = uuid.v4();
         options.replyTo = this.rpc_.getUniqueQueueName();
 
         const rv = new Promise((resolve, reject) => {
+            this.log_('Sending ' + eventName + ' event to queue ' + (this.name || this.getUniqueName()) + ' with correlation id ' + options.correlationId);
             this.channel.sendToQueue(queue, content, options);
             this.rpc_.registerCallback(options.correlationId, {resolve, reject}, options.timeout);
         });
@@ -178,6 +195,19 @@ class Queue {
         };
 
         return rv;
+    }
+
+
+    /**
+     * Log methods. It uses debug module but also custom logger method if exists.
+     */
+    log_() {
+        debug.apply(null, arguments);
+
+        if (!_.isFunction(this.logger_))
+            return;
+
+        this.logger_.apply(null, arguments);
     }
 }
 

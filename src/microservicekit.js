@@ -15,6 +15,9 @@ class MicroserviceKit {
         this.id = uuid.v4().split('-')[0];
         this.amqpKit = null;
         this.shutdownKit = ShutdownKit;
+
+        if (_.isFunction(this.options_.shutdown.logger))
+            this.shutdownKit.setLogger(this.options_.shutdown.logger);
     }
 
 
@@ -33,7 +36,10 @@ class MicroserviceKit {
 
 MicroserviceKit.prototype.defaults = {
     type: 'microservice',
-    amqp: {}
+    amqp: {},
+    shutdown: {
+        logger: null
+    }
 };
 
 

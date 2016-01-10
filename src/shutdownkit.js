@@ -11,6 +11,7 @@ class ShutdownKit {
         process.stdin.resume();
         this.jobs_ = [];
         this.bindEvents_();
+        this.logger_ = null;
     }
 
 
@@ -38,8 +39,8 @@ class ShutdownKit {
      * @param {Error} err
      */
     onUncaughtException_(err) {
-        debug('Uncaught Exception recieved!');
-        debug(err.stack);
+        this.log_('Uncaught Exception recieved!');
+        this.log_(err.stack);
         this.gracefulShutdown();
     }
 
@@ -48,7 +49,7 @@ class ShutdownKit {
      * On SIGTERM
      */
     onSigTerm_() {
-        debug('SIGTERM recieved!');
+        this.log_('SIGTERM recieved!');
         this.gracefulShutdown();
     }
 
@@ -57,7 +58,7 @@ class ShutdownKit {
      * On SIGINT
      */
     onSigInt_() {
-        debug('SIGINT recieved!');
+        this.log_('SIGINT recieved!');
         this.gracefulShutdown();
     }
 
@@ -67,14 +68,14 @@ class ShutdownKit {
      */
     gracefulShutdown() {
         // TODO: Add a timeout maybe?
-        debug('Trying to shutdown gracefully...');
+        this.log_('Trying to shutdown gracefully...');
         async.parallel(this.jobs_, (err) => {
             if (err) {
-                debug('Some jobs failed', err);
-                debug('Quiting anyway...');
+                this.log_('Some jobs failed', err);
+                this.log_('Quiting anyway...');
             }
             else
-                debug('All jobs done, quiting...');
+                this.log_('All jobs done, quiting...');
 
             this.exit_();
         });
@@ -85,8 +86,34 @@ class ShutdownKit {
      * Exists current process.
      */
     exit_() {
-        debug("Bye!", new Date());
+        this.log_("Bye!", new Date());
         process.exit();
+    }
+
+
+    /**
+     * Sets additional logger.
+     * @param {Function} logger
+     */
+    setLogger(logger) {
+        if (!_.isFunction(logger))
+            return false;
+
+        this.logger_ = logger;
+        return true;
+    }
+
+
+    /**
+     * Log methods. It uses debug module but also custom logger method if exists.
+     */
+    log_() {
+        debug.apply(null, arguments);
+
+        if (!_.isFunction(this.logger_))
+            return;
+
+        this.logger_.apply(null, arguments);
     }
 }
 

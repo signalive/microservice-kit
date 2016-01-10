@@ -9,12 +9,14 @@ const Queue = require('./queue');
 
 
 class RPC {
-    constructor() {
+    constructor(opt_options) {
         this.initialized = false;
         this.queue_ = null;
         this.channel_ = null;
         this.callbacks_ = {};
         this.timeouts_ = {};
+        this.logger_ = _.isObject(opt_options) && opt_options.logger;
+        this.registerDates_ = {};
     }
 
 
@@ -71,6 +73,11 @@ class RPC {
                 return;
             }
 
+            if (this.registerDates_[correlationId]) {
+                this.log_('Got response for correlation id ' + correlationId + ' after ' + (new Date() - this.registerDates_[correlationId]) + ' ms');
+                delete this.registerDates_[correlationId];
+            }
+
             if (response.err)
                 callbacks.reject(response.err);
             else
@@ -83,9 +90,9 @@ class RPC {
 
             delete this.callbacks_[correlationId];
         } catch(err) {
-            debug('Cannot consume rpc message, probably json parse error.');
-            debug('Message:', msg);
-            debug('Error:', err);
+            this.log_('Cannot consume rpc message, probably json parse error.');
+            this.log_('Message:', msg);
+            this.log_('Error:', err);
         }
     }
 
@@ -95,20 +102,35 @@ class RPC {
 
     registerCallback(key, funcs, opt_timeout) {
         this.callbacks_[key] = funcs;
-        // TODO: this.durations_[key]
+        this.registerDates_[key] = new Date();
 
         if (_.isNumber(opt_timeout) && opt_timeout > 0) {
             this.timeouts_[key] = setTimeout(() => {
                 const callbacks = this.callbacks_[key];
                 callbacks && callbacks.reject && callbacks.reject(new Error('Timeout exceed.'));
+                this.log_('Timeout exceed for correlation id ' + key);
                 delete this.callbacks_[key];
                 delete this.timeouts_[key];
+                delete this.registerDates_[key];
             }, opt_timeout)
         }
     }
 
     getCallback(key) {
         return this.callbacks_[key];
+    }
+
+
+    /**
+     * Log methods. It uses debug module but also custom logger method if exists.
+     */
+    log_() {
+        debug.apply(null, arguments);
+
+        if (!_.isFunction(this.logger_))
+            return;
+
+        this.logger_.apply(null, arguments);
     }
 }
 

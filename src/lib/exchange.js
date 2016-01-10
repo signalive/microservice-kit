@@ -21,6 +21,7 @@ class Exchange {
         this.type = options.type || 'direct';
         this.options = options.options || {};
         this.rpc_ = options.rpc;
+        this.logger_ = options.logger;
         this.callbacks_ = {};
     }
 
@@ -55,13 +56,20 @@ class Exchange {
         const options = _.assign({}, this.publishDefaults, opt_options || {});
         const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
-        if (!this.rpc_ || options.dontExpectRpc)
+        if (!this.rpc_ || options.dontExpectRpc) {
+            this.log_('Publishing ' + eventName + ' event to exchange ' + this.key +
+                (routingKey ? ' for ' + routingKey : '') + ' without rpc');
+
             return Promise.resolve(this.channel.publish(this.name, routingKey, content, options));
+        }
 
         options.correlationId = uuid.v4();
         options.replyTo = this.rpc_.getUniqueQueueName();
 
         const rv = new Promise((resolve, reject) => {
+            this.log_('Sending ' + eventName + ' event to queue ' + this.key +
+                (routingKey ? ' for ' + routingKey : '') + ' with correlation id ' + options.correlationId);
+
             this.channel.publish(this.name, routingKey, content, options);
             this.rpc_.registerCallback(options.correlationId, {reject, resolve}, options.timeout);
         });
@@ -77,6 +85,18 @@ class Exchange {
         return rv;
     }
 
+
+    /**
+     * Log methods. It uses debug module but also custom logger method if exists.
+     */
+    log_() {
+        debug.apply(null, arguments);
+
+        if (!_.isFunction(this.logger_))
+            return;
+
+        this.logger_.apply(null, arguments);
+    }
 }
 
 
