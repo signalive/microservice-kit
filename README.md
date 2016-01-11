@@ -293,7 +293,7 @@ eventName|String|Event name.
 [payload]|Object|Payload data.
 [options]|Object|See `ampqlib`s [official docs](http://www.squaremobius.net/amqp.node/channel_api.html#channel_publish).
 [options.dontExpectRpc=false]|Boolean|Additional to `amqplib` options, we provide couple of functions too. If you don't want to callback for this message, set `true`. Default `false`.
-[options.timeout=30000]|Number|Timeout duration. This check is totaly in producer side, if job is done after timeout, it's rpc message will be ignored. Pass `0` if you dont want to timeout.
+[options.timeout=30000]|Number|Timeout duration. This check is totaly in producer side, if job is done after timeout, it's rpc message will be ignored. Pass `0` if you dont want to timeout. If you set `dontExpectRpc` as `true`, ignore this option.
 
 ##### Sample
 
@@ -332,7 +332,7 @@ eventName|String|Event name.
 [payload]|Object|Payload data.
 [options]|Object|See `ampqlib`s [official docs](http://www.squaremobius.net/amqp.node/channel_api.html#channel_publish).
 [options.dontExpectRpc=false]|Boolean|Additional to `amqplib` options, we provide couple of functions too. If you don't want to callback for this message, set `true`. Default `false`.
-[options.timeout=30000]|Number|Timeout duration. This check is totaly in producer side, if job is done after timeout, it's rpc message will be ignored. Pass `0` if you dont want to timeout.
+[options.timeout=30000]|Number|Timeout duration. This check is totaly in producer side, if job is done after timeout, it's rpc message will be ignored. Pass `0` if you dont want to timeout. If you set `dontExpectRpc` as `true`, ignore this option.
 
 ##### Sample
 
@@ -354,7 +354,7 @@ const microserviceKit = new MicroserviceKit({...});
 console.log(microserviceKit.shutdownKit);
 ```
 
-As you can see above, you can access ShutdownKit singleton instance multiple ways.
+As you can see above, you can access ShutdownKit singleton instance in multiple ways.
 
 
 #### `ShutdownKit.prototype.addJob(job)`
@@ -393,7 +393,7 @@ Sets a custom logger to print out shutdown process logs to console.
 
 Param|Type|Description
 -----|----|-----------
-job|Function|This function takes `done` callback as single parameter. Execute `done` callback when job is completed. It's also like node-style callback: `done(err)`.
+logger|Function|This function takes `done` callback as single parameter. Execute `done` callback when job is completed. It's also like node-style callback: `done(err)`.
 
 ##### Sample
 
