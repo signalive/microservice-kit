@@ -9,6 +9,7 @@ const os = require('os');
 
 const AmqpKit = require('./amqpkit');
 const ShutdownKit = require('./shutdownkit');
+const DebugKit = require('./debugkit');
 
 
 class MicroserviceKit {
@@ -17,6 +18,7 @@ class MicroserviceKit {
         this.id = new Chance().first().toLowerCase() + '-' + uuid.v4().split('-')[0];
         this.hostname = os.hostname();
         this.amqpKit = null;
+        this.debugKit = DebugKit;
         this.shutdownKit = ShutdownKit;
 
         if (_.isFunction(this.options_.shutdown.logger))
@@ -30,7 +32,9 @@ class MicroserviceKit {
 
         const amqpOptions = _.assign({}, this.options_.amqp, {id: this.getName()});
         this.amqpKit = new AmqpKit(amqpOptions);
-        return this.amqpKit.init();
+        return this.amqpKit
+            .init()
+            .then(() => this.debugKit.init(this, this.options_.debugger));
     }
 
 
