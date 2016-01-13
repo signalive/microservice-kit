@@ -133,7 +133,7 @@ class AmqpKit {
 
 
     /**
-     * Returns echange by key
+     * Returns exchange by key
      * @param {string} exchangeKey
      */
     getExchange(exchangeKey) {
