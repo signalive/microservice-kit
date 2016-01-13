@@ -5,6 +5,7 @@ const fs = require('fs');
 const uuid = require('node-uuid');
 const debug = require('debug')('microservicekit:microservicekit');
 const Chance = require('chance');
+const os = require('os');
 
 const AmqpKit = require('./amqpkit');
 const ShutdownKit = require('./shutdownkit');
@@ -14,6 +15,7 @@ class MicroserviceKit {
     constructor(opt_options) {
         this.options_ = _.assign({}, this.defaults, opt_options || {});
         this.id = new Chance().first().toLowerCase() + '-' + uuid.v4().split('-')[0];
+        this.hostname = os.hostname();
         this.amqpKit = null;
         this.shutdownKit = ShutdownKit;
 
@@ -34,6 +36,16 @@ class MicroserviceKit {
 
     getName() {
         return this.options_.type + '-' +  this.id;
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            name: this.getName(),
+            type: this.options_.type,
+            hostname: this.hostname,
+            amqpKit: this.amqpKit.toJSON()
+        }
     }
 }
 

@@ -206,6 +206,14 @@ class AmqpKit {
                 return exchange;
             });
     }
+
+    toJSON() {
+        return {
+            queues: _.map(this.queues_, queue => queue.toJSON()),
+            exchange: _.map(this.exchanges_, exchange => exchange.toJSON()),
+            url: this.options_.url
+        }
+    }
 }
 
 

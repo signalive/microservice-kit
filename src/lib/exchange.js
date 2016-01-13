@@ -97,6 +97,14 @@ class Exchange {
 
         this.logger_.apply(null, arguments);
     }
+
+    toJSON() {
+        return {
+            name: this.name,
+            type: this.type,
+            options: this.options
+        }
+    }
 }
 
 
