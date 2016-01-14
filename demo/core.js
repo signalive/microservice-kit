@@ -40,8 +40,9 @@ microserviceKit
         const coreQueue = microserviceKit.amqpKit.getQueue('core');
 
         // Consume some core jobs!
-        coreQueue.consumeEvent('deneme.job', (data, callback, progress) => {
+        coreQueue.consumeEvent('deneme.job', (data, callback, progress, routingKey) => {
             console.log("Received: " + JSON.stringify(data));
+            console.log("The routing key of the job was", routingKey);
 
             // Dummy progress events
             let count = 0;

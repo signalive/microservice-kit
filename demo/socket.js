@@ -83,13 +83,16 @@ microserviceKit
             console.log("Received new app version: " + JSON.stringify(data));
         }, {noAck: true});
 
-        directQueue.consumeEvent('signa.socket.direct.update-device', (data, callback) => {
+        directQueue.consumeEvent('signa.socket.direct.update-device', (data, callback, progress, routingKey) => {
             console.log("Received update device: " + JSON.stringify(data));
+            console.log("The routing key of the job was", routingKey);
+
             callback(null, {some: 'device updated kanka, no worries.'});
         });
 
-        directQueue.consumeEvent('signa.socket.direct.screenshot', (data, callback) => {
+        directQueue.consumeEvent('signa.socket.direct.screenshot', (data, callback, progress, routingKey) => {
             console.log("Received update device: " + JSON.stringify(data));
+            console.log("The routing key of the job was", routingKey);
 
             setTimeout(() => {
                 let rand = Math.random();
