@@ -32,15 +32,16 @@ class Router {
      * @param {Object} data
      * @param {Function} done
      * @param {Function} progress
+     * @param {string} routingKey
      */
-    handle(data, done, progress) {
+    handle(data, done, progress, routingKey) {
         debug('Incoming message:' + JSON.stringify(data));
 
         const message = Message.parse(data);
         const callback = this.callbacks_[message.eventName];
 
         if (callback)
-            callback(message.payload, done, progress)
+            callback(message.payload, done, progress, routingKey)
         else
             debug('Unhandled message:' + JSON.stringify(data));
     }

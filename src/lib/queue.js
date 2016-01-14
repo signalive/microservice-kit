@@ -94,7 +94,9 @@ class Queue {
                     }
                 }
 
-                this.consumer_ && this.consumer_(data, done, progress);
+                const routingKey = msg.fields.routingKey;
+
+                this.consumer_ && this.consumer_(data, done, progress, routingKey);
             } catch(err) {
                 this.log_('Error while consuming message:' + msg.content);
                 this.log_(err.stack);
