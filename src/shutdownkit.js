@@ -39,8 +39,7 @@ class ShutdownKit {
      * @param {Error} err
      */
     onUncaughtException_(err) {
-        this.log_('Uncaught Exception recieved!');
-        this.log_(err.stack);
+        this.log_('error', 'Uncaught Exception recieved!', err);
         this.gracefulShutdown();
     }
 
@@ -49,7 +48,7 @@ class ShutdownKit {
      * On SIGTERM
      */
     onSigTerm_() {
-        this.log_('SIGTERM recieved!');
+        this.log_('info', 'SIGTERM recieved!');
         this.gracefulShutdown();
     }
 
@@ -58,7 +57,7 @@ class ShutdownKit {
      * On SIGINT
      */
     onSigInt_() {
-        this.log_('SIGINT recieved!');
+        this.log_('info', 'SIGINT recieved!');
         this.gracefulShutdown();
     }
 
@@ -68,14 +67,14 @@ class ShutdownKit {
      */
     gracefulShutdown() {
         // TODO: Add a timeout maybe?
-        this.log_('Trying to shutdown gracefully...');
+        this.log_('info', 'Trying to shutdown gracefully...');
         async.parallel(this.jobs_, (err) => {
             if (err) {
-                this.log_('Some jobs failed', err);
-                this.log_('Quiting anyway...');
+                this.log_('error', 'Some jobs failed', err);
+                this.log_('info', 'Quiting anyway...');
             }
             else
-                this.log_('All jobs done, quiting...');
+                this.log_('info', 'All jobs done, quiting...');
 
             this.exit_();
         });
@@ -86,7 +85,7 @@ class ShutdownKit {
      * Exists current process.
      */
     exit_() {
-        this.log_("Bye!", new Date());
+        this.log_('info', 'Bye!');
         process.exit();
     }
 
