@@ -57,7 +57,7 @@ class Exchange {
         const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
         if (!this.rpc_ || options.dontExpectRpc) {
-            this.log_('Publishing ' + eventName + ' event to exchange ' + this.key +
+            this.log_('info', 'Publishing ' + eventName + ' event to exchange ' + this.key +
                 (routingKey ? ' for ' + routingKey : '') + ' without rpc');
 
             return Promise.resolve(this.channel.publish(this.name, routingKey, content, options));
@@ -67,7 +67,7 @@ class Exchange {
         options.replyTo = this.rpc_.getUniqueQueueName();
 
         const rv = new Promise((resolve, reject) => {
-            this.log_('Sending ' + eventName + ' event to queue ' + this.key +
+            this.log_('info', 'Sending ' + eventName + ' event to queue ' + this.key +
                 (routingKey ? ' for ' + routingKey : '') + ' with correlation id ' + options.correlationId);
 
             this.channel.publish(this.name, routingKey, content, options);

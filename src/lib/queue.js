@@ -60,9 +60,9 @@ class Queue {
                 const recievedAt = new Date();
 
                 if (msg.properties.correlationId)
-                    this.log_('Recieved ' + message.eventName + ' event with correlation id ' + msg.properties.correlationId);
+                    this.log_('info', 'Recieved ' + message.eventName + ' event with correlation id ' + msg.properties.correlationId);
                 else
-                    this.log_('Recieved ' + message.eventName + ' event without correlation');
+                    this.log_('info', 'Recieved ' + message.eventName + ' event without correlation');
 
                 const done = (err, data) => {
                     if (msg.properties.replyTo && msg.properties.correlationId) {
@@ -73,10 +73,10 @@ class Queue {
                             {correlationId: msg.properties.correlationId}
                         );
 
-                        this.log_('Consumed ' + message.eventName + ' event with correlation id ' +
+                        this.log_('info', 'Consumed ' + message.eventName + ' event with correlation id ' +
                             msg.properties.correlationId + ' in ' + (new Date() - recievedAt) + ' ms');
                     } else
-                        this.log_('Consumed ' + message.eventName + ' event without correlation ' +
+                        this.log_('info', 'Consumed ' + message.eventName + ' event without correlation ' +
                             msg.properties.correlationId + ' in ' + (new Date() - recievedAt) + ' ms');
 
                     if (!options.noAck)
@@ -98,11 +98,10 @@ class Queue {
 
                 this.consumer_ && this.consumer_(data, done, progress, routingKey);
             } catch(err) {
-                this.log_('Error while consuming message:' + msg.content);
-                this.log_(err.stack);
+                this.log_('error', 'Error while consuming message:' + msg.content, err);
 
                 if (!options.noAck) {
-                    this.log_('Negative acknowledging...');
+                    this.log_('info', 'Negative acknowledging...');
                     this.channel.nack(msg);
                 }
             }
@@ -175,7 +174,7 @@ class Queue {
         const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
         if (!this.rpc_ || options.dontExpectRpc) {
-            this.log_('Sending ' + eventName + ' event to queue ' + (this.name || this.getUniqueName()) + ' without rpc');
+            this.log_('info', 'Sending ' + eventName + ' event to queue ' + (this.name || this.getUniqueName()) + ' without rpc');
             return Promise.resolve(this.channel.sendToQueue(queue, content, options));
         }
 
@@ -183,7 +182,7 @@ class Queue {
         options.replyTo = this.rpc_.getUniqueQueueName();
 
         const rv = new Promise((resolve, reject) => {
-            this.log_('Sending ' + eventName + ' event to queue ' + (this.name || this.getUniqueName()) + ' with correlation id ' + options.correlationId);
+            this.log_('info', 'Sending ' + eventName + ' event to queue ' + (this.name || this.getUniqueName()) + ' with correlation id ' + options.correlationId);
             this.channel.sendToQueue(queue, content, options);
             this.rpc_.registerCallback(options.correlationId, {resolve, reject}, options.timeout);
         });
