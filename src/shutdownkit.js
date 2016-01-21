@@ -118,4 +118,7 @@ class ShutdownKit {
 
 
 // Singleton
-module.exports = new ShutdownKit();
+if (!global.shutdownKit_)
+    global.shutdownKit_ = new ShutdownKit();
+
+module.exports = global.shutdownKit_;
