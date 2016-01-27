@@ -3,6 +3,7 @@
 const debug = require('debug')('microservicekit:debugkit');
 const _ = require('lodash');
 const async = require('async');
+const ShutdownKit = require('./shutdownkit');
 
 
 class DebugKit {
@@ -11,6 +12,12 @@ class DebugKit {
         this.amqpKit = null;
 
         this.microservices_ = {};
+
+        ShutdownKit.addJob((done) => {
+            debug('Stopping DebugKit...');
+            clearInterval(this.tickHandler_);
+            done();
+        });
     }
 
     init(microserviceKit) {
