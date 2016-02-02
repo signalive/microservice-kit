@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
@@ -15,5 +15,13 @@
     "debug": "^2.2.0",
     "lodash": "^3.10.1",
     "node-uuid": "^1.4.7"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "chai-as-promised": "^5.2.0",
+    "chance": "^0.8.0",
+    "mocha": "^2.3.4",
+    "sinon": "^1.17.3",
+    "sinon-chai": "^2.8.0"
   }
 }
