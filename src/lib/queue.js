@@ -4,6 +4,7 @@ const debug = require('debug')('microservicekit:lib:queue');
 const async = require('async-q');
 const uuid = require('node-uuid');
 const _ = require('lodash');
+const stats = require('measured').createCollection();
 const Message = require('./message');
 const Exchange = require('./exchange');
 const Response = require('./response');
@@ -54,10 +55,11 @@ class Queue {
 
         return this.channel.consume(this.getUniqueName(), (msg) => {
             try {
+                console.log('timer started');
                 const data = JSON.parse(msg.content.toString());
-
                 const message = Message.parse(data);
                 const recievedAt = new Date();
+                const consumeTimer = stats.timer(message.eventName).start();
 
                 if (msg.properties.correlationId)
                     this.log_('info', 'Recieved ' + message.eventName + ' event with correlation id ' + msg.properties.correlationId);
@@ -81,6 +83,8 @@ class Queue {
 
                     if (!options.noAck)
                         this.channel.ack(msg);
+                    console.log('timer ended');
+                    consumeTimer.end();
                 };
 
                 const progress = (data) => {
@@ -215,7 +219,8 @@ class Queue {
         return {
             uniqueName: this.getUniqueName(),
             name: this.name,
-            options: this.options
+            options: this.options,
+            stats: stats.toJSON()
         }
     }
 }
