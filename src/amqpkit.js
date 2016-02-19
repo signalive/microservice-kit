@@ -45,7 +45,7 @@ class AmqpKit {
                 'options.queues must be an array.');
 
         return amqp
-            .connect(this.options_.url)
+            .connect(this.options_.url, this.options_.connectionOptions)
             .then((connection) => {
                 this.connection = connection;
                 var jobs = [
@@ -216,7 +216,8 @@ class AmqpKit {
 AmqpKit.prototype.defaults = {
     id: 'microservice-default-id',
     rpc: true,
-    logger: null
+    logger: null,
+    connectionOptions: {}
 };
 
 
