@@ -60,7 +60,7 @@ class Response {
         if (_.isObject(err) && err.name) {
             switch (err.name) {
                 case 'Error':
-                    err = new Errors.Error(err.message);
+                    err = new Error(err.message);
                     break;
                 case 'InternalError':
                     err = new Errors.InternalError(err.message);

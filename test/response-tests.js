@@ -15,6 +15,17 @@ const ErrorTypes = require('../src/lib/errors');
 
 describe('Response', function() {
     describe('#parse', function() {
+        it('should parse native error properly', function() {
+            const payload = {foo: 'bar'};
+            const err = new Error('internal error');
+            const done = false;
+            const raw = {err: {name: err.name, message: err.message}, payload, done};
+
+            const response = Response.parse(raw);
+            response.err.should.instanceOf(Error);
+            response.err.message.should.equal(err.message);
+        })
+
         it('should parse internal error properly', function() {
             const payload = {foo: 'bar'};
             const err = new ErrorTypes.InternalError('internal error');
