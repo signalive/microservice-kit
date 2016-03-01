@@ -23,6 +23,9 @@ class MicroserviceKit {
 
 
     init() {
+        if (!this.options_.amqp)
+            return Promise.resolve();
+
         const amqpOptions = _.assign({}, this.options_.amqp, {id: this.getName()});
         this.amqpKit = new AmqpKit(amqpOptions);
         return this.amqpKit.init();
