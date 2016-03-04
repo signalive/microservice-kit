@@ -42,13 +42,21 @@ class MicroserviceKit {
         return this.options_.type + '-' +  this.id;
     }
 
-    toJSON() {
+    getDetailedInfo() {
         return {
             id: this.id,
             name: this.getName(),
             type: this.options_.type,
             hostname: this.hostname,
-            amqpKit: this.amqpKit.toJSON()
+            amqpKit: this.amqpKit.getDetailedInfo()
+        }
+    }
+
+    getBasicInfo() {
+        return {
+            id: this.id,
+            name: this.getName(),
+            amqpKit: this.amqpKit.getBasicInfo()
         }
     }
 }

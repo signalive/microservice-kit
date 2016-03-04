@@ -207,10 +207,18 @@ class AmqpKit {
             });
     }
 
-    toJSON() {
+    getDetailedInfo() {
         return {
-            queues: _.map(this.queues_, queue => queue.toJSON()),
-            exchange: _.map(this.exchanges_, exchange => exchange.toJSON()),
+            queues: _.map(this.queues_, queue => queue.getDetailedInfo()),
+            exchange: _.map(this.exchanges_, exchange => exchange.getDetailedInfo()),
+            url: this.options_.url
+        }
+    }
+
+    getBasicInfo() {
+        return {
+            queues: _.map(this.queues_, queue => queue.getBasicInfo()),
+            exchange: _.map(this.exchanges_, exchange => exchange.getBasicInfo()),
             url: this.options_.url
         }
     }

@@ -215,12 +215,20 @@ class Queue {
         this.logger_.apply(null, arguments);
     }
 
-    toJSON() {
+    getDetailedInfo() {
         return {
             uniqueName: this.getUniqueName(),
             name: this.name,
             options: this.options,
             stats: stats.toJSON()
+        }
+    }
+
+    getBasicInfo() {
+        return {
+            uniqueName: this.getUniqueName(),
+            name: this.name,
+            options: this.options
         }
     }
 }
