@@ -2,10 +2,11 @@
 
 
 class ExtendableError extends Error {
-    constructor(message) {
-        super(message);
+    constructor(message, payload) {
+        super(message, payload);
         this.name = this.constructor.name;
         this.message = message;
+        this.payload = payload;
         Error.captureStackTrace(this, this.constructor.name)
     }
 }
@@ -14,6 +15,7 @@ class ExtendableError extends Error {
 ExtendableError.prototype.toJSON = function() {
     return {
         message: this.message,
+        payload: this.payload,
         name: this.name
     }
 };

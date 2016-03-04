@@ -4,8 +4,8 @@ const ExtendableError = require('./extendableerror');
 
 
 class ClientError extends ExtendableError {
-    constructor(m) {
-        super(m);
+    constructor(m, p) {
+        super(m, p);
     }
 }
 
