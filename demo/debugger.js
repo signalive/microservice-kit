@@ -13,7 +13,7 @@ microserviceKit
     .then(() => {
         const debugKit = microserviceKit.debugKit;
         setInterval(() => {
-            console.log(JSON.stringify(debugKit.getMicroservices(), '', 4));
+            console.log(JSON.stringify(debugKit.getDiscoveredMicroservices(), '', 4));
         }, 3000);
     })
     .catch((err) => {
