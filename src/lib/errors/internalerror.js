@@ -4,8 +4,8 @@ const ExtendableError = require('./extendableerror');
 
 
 class InternalError extends ExtendableError {
-    constructor(m) {
-        super(m);
+    constructor(m, p) {
+        super(m, p);
     }
 }
 
