@@ -77,7 +77,7 @@ class Queue {
                             msg.properties.correlationId + ' in ' + (new Date() - recievedAt) + ' ms');
                     } else
                         this.log_('info', 'Consumed ' + message.eventName + ' event without correlation ' +
-                            msg.properties.correlationId + ' in ' + (new Date() - recievedAt) + ' ms');
+                            'in ' + (new Date() - recievedAt) + ' ms');
 
                     if (!options.noAck)
                         this.channel.ack(msg);
