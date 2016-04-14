@@ -68,7 +68,7 @@ class ShutdownKit {
     gracefulShutdown() {
         // TODO: Add a timeout maybe?
         this.log_('info', 'Trying to shutdown gracefully...');
-        async.parallel(this.jobs_, (err) => {
+        async.series(this.jobs_.reverse(), (err) => {
             if (err) {
                 this.log_('error', 'Some jobs failed', err);
                 this.log_('info', 'Quiting anyway...');
