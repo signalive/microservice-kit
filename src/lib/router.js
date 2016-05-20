@@ -1,6 +1,6 @@
 'use strict';
 
-const debug = require('debug')('microservicekit:amqpkit:router');
+const debug = require('debug')('microservice-kit:amqpkit:router');
 const Message = require('./message');
 
 

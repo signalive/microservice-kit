@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const fs = require('fs');
 const uuid = require('node-uuid');
-const debug = require('debug')('microservicekit:microservicekit');
+const debug = require('debug')('microservice-kit:microservicekit');
 const Chance = require('chance');
 
 const AmqpKit = require('./amqpkit');

@@ -1,6 +1,6 @@
 'use strict';
 
-const debug = require('debug')('microservicekit:shutdownkit');
+const debug = require('debug')('microservice-kit:shutdownkit');
 const _ = require('lodash');
 const async = require('async');
 

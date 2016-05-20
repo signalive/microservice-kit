@@ -1,6 +1,6 @@
 "use strict";
 
-const debug = require('debug')('microservicekit:lib:rpc');
+const debug = require('debug')('microservice-kit:lib:rpc');
 const uuid = require('node-uuid');
 const _ = require('lodash');
 const Response = require('./response');
