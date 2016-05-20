@@ -1,6 +1,6 @@
 "use strict";
 
-const debug = require('debug')('microservicekit:lib:queue');
+const debug = require('debug')('microservice-kit:lib:queue');
 const async = require('async-q');
 const uuid = require('node-uuid');
 const _ = require('lodash');

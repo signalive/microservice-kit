@@ -4,7 +4,7 @@ const async = require('async-q');
 const _ = require('lodash');
 const amqp = require('amqplib');
 const uuid = require('node-uuid');
-const debug = require('debug')('microservicekit:amqpkit');
+const debug = require('debug')('microservice-kit:amqpkit');
 
 const Message = require('./lib/message');
 const Response = require('./lib/response');
