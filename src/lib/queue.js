@@ -59,12 +59,18 @@ class Queue {
                 const message = Message.parse(data);
                 const recievedAt = new Date();
 
-                if (msg.properties.correlationId)
-                    this.log_('info', 'Recieved ' + message.eventName + ' event with correlation id ' + msg.properties.correlationId);
-                else
-                    this.log_('info', 'Recieved ' + message.eventName + ' event without correlation');
+                this.log_('info', 'Recieved event', {
+                    correlationId: msg.properties.correlationId,
+                    eventName: message.eventName
+                });
 
                 const done = (err, data) => {
+                    const duration = new Date() - recievedAt;
+                    const logPayload = {
+                        duration,
+                        eventName: message.eventName
+                    };
+
                     if (msg.properties.replyTo && msg.properties.correlationId) {
                         const response = new Response(err, data, true);
                         this.channel.sendToQueue(
@@ -73,11 +79,10 @@ class Queue {
                             {correlationId: msg.properties.correlationId}
                         );
 
-                        this.log_('info', 'Consumed ' + message.eventName + ' event with correlation id ' +
-                            msg.properties.correlationId + ' in ' + (new Date() - recievedAt) + ' ms');
-                    } else
-                        this.log_('info', 'Consumed ' + message.eventName + ' event without correlation ' +
-                            'in ' + (new Date() - recievedAt) + ' ms');
+                        logPayload.correlationId = msg.properties.correlationId;
+                    }
+
+                    this.log_('info', `Consumed event`, logPayload);
 
                     if (!options.noAck)
                         this.channel.ack(msg);
@@ -98,7 +103,7 @@ class Queue {
 
                 this.consumer_ && this.consumer_(data, done, progress, routingKey);
             } catch(err) {
-                this.log_('error', 'Error while consuming message:' + msg.content, err);
+                this.log_('error', 'Error while consuming message', {err, content: msg.content});
 
                 if (!options.noAck) {
                     this.log_('info', 'Negative acknowledging...');
@@ -174,7 +179,11 @@ class Queue {
         const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
         if (!this.rpc_ || options.dontExpectRpc) {
-            this.log_('info', 'Sending ' + eventName + ' event to queue ' + (this.name || this.getUniqueName()) + ' without rpc');
+            this.log_('info', 'Sending event to queue', {
+                eventName,
+                target: this.name || this.getUniqueName()
+            });
+
             return Promise.resolve(this.channel.sendToQueue(queue, content, options));
         }
 
@@ -182,7 +191,13 @@ class Queue {
         options.replyTo = this.rpc_.getUniqueQueueName();
 
         const rv = new Promise((resolve, reject) => {
-            this.log_('info', 'Sending ' + eventName + ' event to queue ' + (this.name || this.getUniqueName()) + ' with correlation id ' + options.correlationId);
+            this.log_('info', 'Sending event to queue', {
+                eventName,
+                correlationId: options.correlationId,
+                target: this.name || this.getUniqueName(),
+
+            });
+
             this.channel.sendToQueue(queue, content, options);
             this.rpc_.registerCallback(options.correlationId, {resolve, reject}, options.timeout);
         });
