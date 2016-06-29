@@ -74,7 +74,8 @@ class RPC {
             }
 
             if (this.registerDates_[correlationId]) {
-                this.log_('info', 'Got response for correlation id ' + correlationId + ' after ' + (new Date() - this.registerDates_[correlationId]) + ' ms');
+                const duration = new Date() - this.registerDates_[correlationId];
+                this.log_('info', 'Got response', {correlationId, duration});
                 delete this.registerDates_[correlationId];
             }
 
@@ -90,7 +91,7 @@ class RPC {
 
             delete this.callbacks_[correlationId];
         } catch(err) {
-            this.log_('error', 'Cannot consume rpc message, probably json parse error.', msg, err);
+            this.log_('error', 'Cannot consume rpc message, probably json parse error.', {msg, err});
         }
     }
 
@@ -106,7 +107,7 @@ class RPC {
             this.timeouts_[key] = setTimeout(() => {
                 const callbacks = this.callbacks_[key];
                 callbacks && callbacks.reject && callbacks.reject(new Error('Timeout exceed.'));
-                this.log_('info', 'Timeout exceed for correlation id ' + key);
+                this.log_('info', 'Timeout exceed', {correlationId: key});
                 delete this.callbacks_[key];
                 delete this.timeouts_[key];
                 delete this.registerDates_[key];
