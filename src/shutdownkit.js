@@ -39,7 +39,7 @@ class ShutdownKit {
      * @param {Error} err
      */
     onUncaughtException_(err) {
-        this.log_('error', 'Uncaught Exception recieved!', err);
+        this.log_('error', 'Uncaught Exception received!', err);
         this.gracefulShutdown();
     }
 
@@ -48,7 +48,7 @@ class ShutdownKit {
      * On SIGTERM
      */
     onSigTerm_() {
-        this.log_('info', 'SIGTERM recieved!');
+        this.log_('info', 'SIGTERM received!');
         this.gracefulShutdown();
     }
 
@@ -57,7 +57,7 @@ class ShutdownKit {
      * On SIGINT
      */
     onSigInt_() {
-        this.log_('info', 'SIGINT recieved!');
+        this.log_('info', 'SIGINT received!');
         this.gracefulShutdown();
     }
 
