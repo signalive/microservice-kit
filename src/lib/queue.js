@@ -57,15 +57,15 @@ class Queue {
                 const data = JSON.parse(msg.content.toString());
 
                 const message = Message.parse(data);
-                const recievedAt = new Date();
+                const receivedAt = new Date();
 
-                this.log_('info', 'Recieved event', {
+                this.log_('info', 'Received event', {
                     correlationId: msg.properties.correlationId,
                     eventName: message.eventName
                 });
 
                 const done = (err, data) => {
-                    const duration = new Date() - recievedAt;
+                    const duration = new Date() - receivedAt;
                     const logPayload = {
                         duration,
                         eventName: message.eventName
