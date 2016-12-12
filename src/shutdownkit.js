@@ -76,9 +76,7 @@ class ShutdownKit {
             else
                 this.log_('info', 'All jobs done, quiting...');
 
-            this.log_('info', 'Bye!', () => {
-                this.exit_();
-            });
+            this.exit_();
         });
     }
 
@@ -87,6 +85,7 @@ class ShutdownKit {
      * Exists current process.
      */
     exit_() {
+        this.log_('info', 'Bye!');
         process.exit();
     }
 
