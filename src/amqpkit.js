@@ -88,6 +88,7 @@ class AmqpKit {
     bindEvents() {
         this.connection.on('close', () => {
             debug('connection closed');
+            ShutdownKit.gracefulShutdown();
         });
 
         this.connection.on('error', (err) => {
