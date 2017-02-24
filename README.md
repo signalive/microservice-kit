@@ -252,7 +252,7 @@ coreQueue.consumeEvent('get-device', (payload, done, progress) => {
   // complete job.
   setTimeout(() => {
       clearInterval(interval);
-      callback(null, {some: 'Response!'});
+      done(null, {some: 'Response!'});
   }, 5000);
 }, {});
 ```
