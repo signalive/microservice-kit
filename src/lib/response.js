@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const Errors = require('./errors');
+const Boom = require('boom');
 
 
 
@@ -26,8 +27,14 @@ class Response {
     toJSON() {
         let err = this.err;
 
-        if (_.isObject(err) && err instanceof Error && err.name == 'Error')
-            err = {message: err.message, name: 'Error'};
+        if (_.isObject(err)) {
+            if (err.isBoom)
+                err = Object.assign({}, err.output.payload, { name: 'BoomError' });
+
+            if (err instanceof Error && err.name == 'Error')
+                err = {message: err.message, name: 'Error'};
+        }
+        
 
         return {
             err,
@@ -67,6 +74,9 @@ class Response {
                     break;
                 case 'ClientError':
                     err = new Errors.ClientError(err.message);
+                    break;
+                case 'BoomError':
+                    err = Boom.create(err.statusCode, err.message);
                     break;
             }
         }
