@@ -2,8 +2,14 @@
 
 Utility belt for building microservices.
 
+
+## Note
+
+This is a fork by SignAlive's version to add the package to NPM and to add Boom error support.
+
 ## Quick Start
 
+- Install using `yarn add microservice-kit`
 - Check out [/demo](https://github.com/signalive/microservice-kit/tree/master/demo) folder
 - [A boilerplate for your new microservice](https://github.com/signalive/microservice-boilerplate)
 
