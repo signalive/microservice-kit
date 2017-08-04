@@ -5,6 +5,7 @@ const _ = require('lodash');
 const amqp = require('amqplib');
 const uuid = require('node-uuid');
 const debug = require('debug')('microservice-kit:amqpkit');
+const url = require('url');
 
 const Message = require('./lib/message');
 const Response = require('./lib/response');
@@ -43,6 +44,10 @@ class AmqpKit {
         if (this.options_.queues && !Array.isArray(this.options_.queues))
             throw new Error('MicroserviceKit init failed. ' +
                 'options.queues must be an array.');
+
+        this.options_.connectionOptions = _.assign(this.options_.connectionOptions, {
+            servername: url.parse(this.options_.url).hostname
+        });
 
         return amqp
             .connect(this.options_.url, this.options_.connectionOptions)
