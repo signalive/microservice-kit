@@ -12,6 +12,7 @@ class ShutdownKit {
         this.jobs_ = [];
         this.bindEvents_();
         this.logger_ = null;
+        this.isShuttingDown = false;
     }
 
 
@@ -67,6 +68,8 @@ class ShutdownKit {
      */
     gracefulShutdown() {
         // TODO: Add a timeout maybe?
+        if (this.isShuttingDown) return;
+        this.isShuttingDown = true;
         this.log_('info', 'Trying to shutdown gracefully...');
         async.series(this.jobs_.reverse(), (err) => {
             if (err) {
