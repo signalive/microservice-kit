@@ -3,7 +3,7 @@
 const async = require('async-q');
 const _ = require('lodash');
 const amqp = require('amqplib');
-const uuid = require('node-uuid');
+const uuid = require('uuid/v4');
 const debug = require('debug')('microservice-kit:amqpkit');
 const url = require('url');
 
@@ -169,7 +169,7 @@ class AmqpKit {
             return Promise.reject(new Error('You cannot create queue with same key more than once.'));
 
         if (!name && opt_options && opt_options.exclusive)
-            name = this.options_.id + '-' + 'excl' + '-' + uuid.v4().split('-')[0];
+            name = this.options_.id + '-' + 'excl' + '-' + uuid().split('-')[0];
 
         const queue = new Queue({
             channel: this.channel,
