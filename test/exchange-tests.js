@@ -92,11 +92,11 @@ describe('Exchange', function() {
             })
 
             it('publishEvent fails without eventName 1', function () {
-                return this.exchange.publishEvent().should.eventually.fails;
+                return this.exchange.publishEvent().should.eventually.rejected;
             });
 
             it('publishEvent fails without eventName 2', function () {
-                return this.exchange.publishEvent('routing-key', null, {foo: 'bar'}).should.eventually.fails;
+                return this.exchange.publishEvent('routing-key', null, {foo: 'bar'}).should.eventually.rejected;
             });
 
             it('publishEvent does not fails without routing key', function () {
@@ -119,11 +119,11 @@ describe('Exchange', function() {
             })
 
             it('publishEvent fails without eventName 1', function () {
-                return this.exchange.publishEvent().should.eventually.fails;
+                return this.exchange.publishEvent().should.eventually.rejected;
             });
 
             it('publishEvent fails without eventName 2', function () {
-                return this.exchange.publishEvent(null, {foo: 'bar'}).should.eventually.fails;
+                return this.exchange.publishEvent(null, {foo: 'bar'}).should.eventually.rejected;
             });
 
             it('rpc.getUniqueQueueName() should be called', function () {
