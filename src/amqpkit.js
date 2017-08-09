@@ -112,12 +112,17 @@ class AmqpKit {
 
         ShutdownKit.addJob((done) => {
             debug('Closing connection...');
-            this.connection
-                .close()
-                .then(() => {
-                    done();
-                })
-                .catch(done);
+            try {
+                this.connection
+                    .close()
+                    .then(() => {
+                        done();
+                    })
+                    .catch(done);
+            } catch (err) {
+                debug('Could not close connection', err);
+                done();
+            }
         });
     }
 
