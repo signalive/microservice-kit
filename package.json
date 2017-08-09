@@ -10,18 +10,18 @@
   "license": "ISC",
   "dependencies": {
     "amqplib": "0.5.1",
-    "async": "^1.5.0",
-    "async-q": "^0.2.2",
-    "chance": "^0.8.0",
-    "debug": "^2.2.0",
-    "lodash": "^3.10.1",
+    "async": "2.5.0",
+    "async-q": "0.3.1",
+    "chance": "1.0.10",
+    "debug": "3.0.0",
+    "lodash": "4.17.4",
     "node-uuid": "^1.4.7"
   },
   "devDependencies": {
-    "chai": "^3.4.1",
-    "chai-as-promised": "^5.2.0",
-    "mocha": "^2.3.4",
-    "sinon": "^1.17.3",
-    "sinon-chai": "^2.8.0"
+    "chai": "4.1.1",
+    "chai-as-promised": "7.1.1",
+    "mocha": "3.5.0",
+    "sinon": "3.1.0",
+    "sinon-chai": "2.12.0"
   }
 }
