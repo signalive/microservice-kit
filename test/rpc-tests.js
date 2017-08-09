@@ -85,7 +85,8 @@ describe('RPC', function() {
 
         it('should reject if there is an error', function() {
             const msg = Message.mock();
-            const errorObject = new ErrorTypes.InternalError('Something wrong');
+            const errMessage = 'Something wrong';
+            const errorObject = new ErrorTypes.InternalError(errMessage);
             msg.properties.correlationId = 'id1';
             msg.content.toString = () => {
                 return JSON.stringify({
@@ -93,7 +94,7 @@ describe('RPC', function() {
                 })
             };
             this.rpc.consumer(msg);
-            this.callbacks.reject.should.calledWith(errorObject);
+            this.callbacks.reject.should.have.been.calledWithMatch(sinon.match({message: errMessage, name: 'InternalError'}));
             this.callbacks.resolve.should.not.called;
         })
 

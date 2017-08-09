@@ -162,7 +162,7 @@ describe('Queue', function() {
 
 
             it('sendEvent fails without eventName 2', function () {
-                return this.queue.sendEvent(null, {foo: 'bar'}).should.eventually.fails;
+                return this.queue.sendEvent(null, {foo: 'bar'}).should.eventually.rejected;
             });
         })
     })
@@ -183,11 +183,11 @@ describe('Queue', function() {
             })
 
             it('sendEvent fails without eventName 1', function () {
-                return this.queue.sendEvent().should.eventually.fails;
+                return this.queue.sendEvent().should.eventually.rejected;
             });
 
             it('sendEvent fails without eventName 2', function () {
-                return this.queue.sendEvent(null, {foo: 'bar'}).should.eventually.fails;
+                return this.queue.sendEvent(null, {foo: 'bar'}).should.eventually.rejected;
             });
         })
 
@@ -208,11 +208,11 @@ describe('Queue', function() {
             })
 
             it('sendEvent fails without eventName 1', function () {
-                return this.queue.sendEvent().should.eventually.fails;
+                return this.queue.sendEvent().should.eventually.rejected;
             });
 
             it('sendEvent fails without eventName 2', function () {
-                return this.queue.sendEvent(null, {foo: 'bar'}).should.eventually.fails;
+                return this.queue.sendEvent(null, {foo: 'bar'}).should.eventually.rejected;
             });
 
             it('rpc.getUniqueQueueName() should be called', function () {
