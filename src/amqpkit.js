@@ -45,9 +45,11 @@ class AmqpKit {
             throw new Error('MicroserviceKit init failed. ' +
                 'options.queues must be an array.');
 
-        this.options_.connectionOptions = _.assign(this.options_.connectionOptions, {
-            servername: url.parse(this.options_.url).hostname
-        });
+        if (this.options_.url) {
+            this.options_.connectionOptions = _.assign(this.options_.connectionOptions, {
+                servername: url.parse(this.options_.url).hostname
+            });
+        }
 
         return amqp
             .connect(this.options_.url, this.options_.connectionOptions)
