@@ -69,6 +69,10 @@ class Exchange {
         options.correlationId = uuid();
         options.replyTo = this.rpc_.getUniqueQueueName();
 
+        if (_.isNumber(options.timeout) && options.timeout > 0) {
+            options.expiration = options.timeout.toString();
+        }
+
         const rv = new Promise((resolve, reject) => {
             this.log_('info', 'Publishing event', {
                 eventName,
