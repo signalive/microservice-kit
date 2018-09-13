@@ -80,9 +80,22 @@ class Queue {
                         );
 
                         logPayload.correlationId = msg.properties.correlationId;
+                        logPayload.response = response;
                     }
 
-                    this.log_('info', `Consumed event`, logPayload);
+                    logPayload.labels = {
+                        duration,
+                        eventName: logPayload.eventName
+                    };
+
+                    let logLevel = 'info';
+
+                    if (err) {
+                        logLevel = 'error';
+                        logPayload.error = err.toJSON();
+                    }
+
+                    this.log_(logLevel, 'Consumed event', logPayload);
 
                     if (!options.noAck)
                         this.channel.ack(msg);
