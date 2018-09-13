@@ -1,6 +1,6 @@
 {
   "name": "microservice-kit",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Utility belt for building microservices",
   "main": "src/index.js",
   "scripts": {
@@ -9,13 +9,16 @@
   "author": "OmmaSign Tech <tech@ommasign.com>",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/logging-winston": "0.9.0",
     "amqplib": "0.5.2",
     "async": "2.6.1",
     "async-q": "0.3.1",
     "chance": "1.0.10",
     "debug": "3.1.0",
     "lodash": "4.17.10",
-    "uuid": "3.3.2"
+    "uuid": "3.3.2",
+    "winston": "2.4.4",
+    "winston-papertrail": "1.0.5"
   },
   "devDependencies": {
     "chai": "4.1.1",
