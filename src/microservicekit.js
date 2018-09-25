@@ -20,6 +20,11 @@ class MicroserviceKit extends EventEmitterExtra {
         this.amqpKit = null;
         this.shutdownKit = ShutdownKit;
 
+        this.shutdownKit.on('log', (...args) => {
+            this.emit('shutdownKitLog', ...args);
+            args.splice(1, 0, '[shutdownkit]');
+            this.emit('log', ...args);
+        });
     }
 
 
@@ -29,6 +34,13 @@ class MicroserviceKit extends EventEmitterExtra {
 
         const amqpOptions = _.assign({}, this.options_.amqp, {id: this.getName()});
         this.amqpKit = new AmqpKit(amqpOptions);
+
+        this.amqpKit.on('log', (...args) => {
+            this.emit('amqpKitLog', ...args);
+            args.splice(1, 0, '[amqpkit]');
+            this.emit('log', ...args);
+        });
+
         return this.amqpKit.init();
     }
 

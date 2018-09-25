@@ -63,6 +63,8 @@ class AmqpKit extends EventEmitterExtra {
 
                 if (this.options_.rpc) {
                     this.rpc_ = new RPC();
+                    this.rpc_.on('log', (...args) => this.emit('log', ...args));
+
                     const rpcQueueName = this.options_.id + '-rpc';
                     jobs.push(this.rpc_.init(connection, rpcQueueName));
                 }
@@ -180,6 +182,7 @@ class AmqpKit extends EventEmitterExtra {
             rpc: this.rpc_
         });
 
+        queue.on('log', (...args) => this.emit('log', ...args));
         return queue.init()
             .then(() => {
                 this.queues_[key] = queue;
@@ -211,6 +214,8 @@ class AmqpKit extends EventEmitterExtra {
             options: opt_options,
             rpc: this.rpc_
         });
+
+        exchange.on('log', (...args) => this.emit('log', ...args));
 
         return exchange.init()
             .then((exchange) => {

@@ -104,6 +104,7 @@ class Exchange extends EventEmitterExtra {
      */
     log_(...args) {
         debug(...args);
+        this.emit('log', ...args);
     }
 }
 
