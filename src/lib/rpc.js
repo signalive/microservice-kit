@@ -1,5 +1,6 @@
 "use strict";
 
+const EventEmitterExtra = require('event-emitter-extra');
 const debug = require('debug')('microservice-kit:lib:rpc');
 const _ = require('lodash');
 const Response = require('./response');
@@ -7,14 +8,15 @@ const Queue = require('./queue');
 
 
 
-class RPC {
+class RPC extends EventEmitterExtra {
     constructor(opt_options) {
+        super();
+
         this.initialized = false;
         this.queue_ = null;
         this.channel_ = null;
         this.callbacks_ = {};
         this.timeouts_ = {};
-        this.logger_ = _.isObject(opt_options) && opt_options.logger;
         this.registerDates_ = {};
     }
 
@@ -122,13 +124,9 @@ class RPC {
     /**
      * Log methods. It uses debug module but also custom logger method if exists.
      */
-    log_() {
-        debug.apply(null, arguments);
-
-        if (!_.isFunction(this.logger_))
-            return;
-
-        this.logger_.apply(null, arguments);
+    log_(...args) {
+        debug(...args);
+        this.emit('log', ...args);
     }
 }
 

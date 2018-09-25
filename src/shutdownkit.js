@@ -1,17 +1,18 @@
 'use strict';
 
+const EventEmitterExtra = require('event-emitter-extra');
 const debug = require('debug')('microservice-kit:shutdownkit');
 const _ = require('lodash');
 const async = require('async');
 
 
-class ShutdownKit {
+class ShutdownKit extends EventEmitterExtra {
     constructor() {
+        super();
         // Force resume node process!
         process.stdin.resume();
         this.jobs_ = [];
         this.bindEvents_();
-        this.logger_ = null;
         this.isShuttingDown = false;
     }
 
@@ -94,28 +95,11 @@ class ShutdownKit {
 
 
     /**
-     * Sets additional logger.
-     * @param {Function} logger
-     */
-    setLogger(logger) {
-        if (!_.isFunction(logger))
-            return false;
-
-        this.logger_ = logger;
-        return true;
-    }
-
-
-    /**
      * Log methods. It uses debug module but also custom logger method if exists.
      */
-    log_() {
-        debug.apply(null, arguments);
-
-        if (!_.isFunction(this.logger_))
-            return;
-
-        this.logger_.apply(null, arguments);
+    log_(...args) {
+        debug(...args);
+        this.emit('log', ...args);
     }
 }
 

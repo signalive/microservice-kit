@@ -3,6 +3,7 @@
 const async = require('async-q');
 const _ = require('lodash');
 const amqp = require('amqplib');
+const EventEmitterExtra = require('event-emitter-extra');
 const uuid = require('uuid/v4');
 const debug = require('debug')('microservice-kit:amqpkit');
 const url = require('url');
@@ -16,12 +17,13 @@ const RPC = require('./lib/rpc');
 const ShutdownKit = require('./shutdownkit');
 
 
-class AmqpKit {
+class AmqpKit extends EventEmitterExtra {
     /**
      * @param {Object=} opt_options
      *                    url, rpc, queues, exchanges
      */
     constructor(opt_options) {
+        super();
         this.options_ = _.assign({}, this.defaults, opt_options || {});
 
         this.connection = null;
@@ -60,7 +62,9 @@ class AmqpKit {
                 ];
 
                 if (this.options_.rpc) {
-                    this.rpc_ = new RPC({logger: this.options_.logger});
+                    this.rpc_ = new RPC();
+                    this.rpc_.on('log', (...args) => this.emit('log', ...args));
+
                     const rpcQueueName = this.options_.id + '-rpc';
                     jobs.push(this.rpc_.init(connection, rpcQueueName));
                 }
@@ -175,9 +179,11 @@ class AmqpKit {
             channel: this.channel,
             name: name,
             options: opt_options,
-            rpc: this.rpc_,
-            logger: this.options_.logger
+            rpc: this.rpc_
         });
+
+        queue.on('log', (...args) => this.emit('log', ...args));
+        queue.on('consumedEvent', payload => this.emit('consumedEvent', payload));
 
         return queue.init()
             .then(() => {
@@ -208,9 +214,10 @@ class AmqpKit {
             name: name,
             type: type,
             options: opt_options,
-            rpc: this.rpc_,
-            logger: this.options_.logger
+            rpc: this.rpc_
         });
+
+        exchange.on('log', (...args) => this.emit('log', ...args));
 
         return exchange.init()
             .then((exchange) => {
@@ -229,7 +236,6 @@ class AmqpKit {
 AmqpKit.prototype.defaults = {
     id: 'microservice-default-id',
     rpc: true,
-    logger: null,
     connectionOptions: {}
 };
 

@@ -2,6 +2,7 @@
 
 const debug = require('debug')('microservice-kit:lib:queue');
 const async = require('async-q');
+const EventEmitterExtra = require('event-emitter-extra');
 const uuid = require('uuid/v4');
 const _ = require('lodash');
 const Message = require('./message');
@@ -11,8 +12,9 @@ const Router = require('./router');
 
 
 
-class Queue {
+class Queue extends EventEmitterExtra {
     constructor(options) {
+        super();
         if (!options.channel)
             throw new Error('MicroserviceKit: Queue cannot be ' +
                 'constructed without a channel');
@@ -20,7 +22,6 @@ class Queue {
         this.channel = options.channel;
         this.name = options.name || '';
         this.rpc_ = options.rpc;
-        this.logger_ = options.logger;
         this.options = options.options || {};
     }
 
@@ -95,7 +96,8 @@ class Queue {
                         logPayload.error = err.toJSON();
                     }
 
-                    this.log_(logLevel, 'Consumed event', logPayload);
+                    this.log_(logLevel, 'Consumed event', _.omit(logPayload, 'response'));
+                    this.emit('consumedEvent', logPayload);
 
                     if (!options.noAck)
                         this.channel.ack(msg);
@@ -234,13 +236,9 @@ class Queue {
     /**
      * Log methods. It uses debug module but also custom logger method if exists.
      */
-    log_() {
-        debug.apply(null, arguments);
-
-        if (!_.isFunction(this.logger_))
-            return;
-
-        this.logger_.apply(null, arguments);
+    log_(...args) {
+        debug(...args);
+        this.emit('log', ...args);
     }
 }
 
