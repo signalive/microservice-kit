@@ -183,6 +183,8 @@ class AmqpKit extends EventEmitterExtra {
         });
 
         queue.on('log', (...args) => this.emit('log', ...args));
+        queue.on('consumedEvent', payload => this.emit('consumedEvent', payload));
+
         return queue.init()
             .then(() => {
                 this.queues_[key] = queue;

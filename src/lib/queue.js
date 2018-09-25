@@ -96,7 +96,8 @@ class Queue extends EventEmitterExtra {
                         logPayload.error = err.toJSON();
                     }
 
-                    this.log_(logLevel, 'Consumed event', logPayload);
+                    this.log_(logLevel, 'Consumed event', _.omit(logPayload, 'response'));
+                    this.emit('consumedEvent', logPayload);
 
                     if (!options.noAck)
                         this.channel.ack(msg);

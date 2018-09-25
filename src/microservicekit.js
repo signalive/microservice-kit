@@ -41,6 +41,8 @@ class MicroserviceKit extends EventEmitterExtra {
             this.emit('log', ...args);
         });
 
+        this.amqpKit.on('consumedEvent', payload => this.emit('consumedEvent', payload));
+
         return this.amqpKit.init();
     }
 
