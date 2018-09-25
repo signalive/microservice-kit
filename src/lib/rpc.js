@@ -14,7 +14,6 @@ class RPC {
         this.channel_ = null;
         this.callbacks_ = {};
         this.timeouts_ = {};
-        this.logger_ = _.isObject(opt_options) && opt_options.logger;
         this.registerDates_ = {};
     }
 
@@ -122,13 +121,8 @@ class RPC {
     /**
      * Log methods. It uses debug module but also custom logger method if exists.
      */
-    log_() {
-        debug.apply(null, arguments);
-
-        if (!_.isFunction(this.logger_))
-            return;
-
-        this.logger_.apply(null, arguments);
+    log_(...args) {
+        debug(...args);
     }
 }
 

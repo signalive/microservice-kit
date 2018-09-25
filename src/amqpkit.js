@@ -60,7 +60,7 @@ class AmqpKit {
                 ];
 
                 if (this.options_.rpc) {
-                    this.rpc_ = new RPC({logger: this.options_.logger});
+                    this.rpc_ = new RPC();
                     const rpcQueueName = this.options_.id + '-rpc';
                     jobs.push(this.rpc_.init(connection, rpcQueueName));
                 }
@@ -175,8 +175,7 @@ class AmqpKit {
             channel: this.channel,
             name: name,
             options: opt_options,
-            rpc: this.rpc_,
-            logger: this.options_.logger
+            rpc: this.rpc_
         });
 
         return queue.init()
@@ -208,8 +207,7 @@ class AmqpKit {
             name: name,
             type: type,
             options: opt_options,
-            rpc: this.rpc_,
-            logger: this.options_.logger
+            rpc: this.rpc_
         });
 
         return exchange.init()
@@ -229,7 +227,6 @@ class AmqpKit {
 AmqpKit.prototype.defaults = {
     id: 'microservice-default-id',
     rpc: true,
-    logger: null,
     connectionOptions: {}
 };
 

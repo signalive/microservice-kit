@@ -21,7 +21,6 @@ class Exchange {
         this.type = options.type || 'direct';
         this.options = options.options || {};
         this.rpc_ = options.rpc;
-        this.logger_ = options.logger;
         this.callbacks_ = {};
     }
 
@@ -100,13 +99,8 @@ class Exchange {
     /**
      * Log methods. It uses debug module but also custom logger method if exists.
      */
-    log_() {
-        debug.apply(null, arguments);
-
-        if (!_.isFunction(this.logger_))
-            return;
-
-        this.logger_.apply(null, arguments);
+    log_(...args) {
+        debug(...args);
     }
 }
 
