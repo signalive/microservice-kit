@@ -1,5 +1,6 @@
 "use strict";
 
+const EventEmitterExtra = require('event-emitter-extra');
 const debug = require('debug')('microservice-kit:lib:rpc');
 const _ = require('lodash');
 const Response = require('./response');
@@ -7,8 +8,10 @@ const Queue = require('./queue');
 
 
 
-class RPC {
+class RPC extends EventEmitterExtra {
     constructor(opt_options) {
+        super();
+
         this.initialized = false;
         this.queue_ = null;
         this.channel_ = null;

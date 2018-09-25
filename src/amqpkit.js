@@ -3,6 +3,7 @@
 const async = require('async-q');
 const _ = require('lodash');
 const amqp = require('amqplib');
+const EventEmitterExtra = require('event-emitter-extra');
 const uuid = require('uuid/v4');
 const debug = require('debug')('microservice-kit:amqpkit');
 const url = require('url');
@@ -16,12 +17,13 @@ const RPC = require('./lib/rpc');
 const ShutdownKit = require('./shutdownkit');
 
 
-class AmqpKit {
+class AmqpKit extends EventEmitterExtra {
     /**
      * @param {Object=} opt_options
      *                    url, rpc, queues, exchanges
      */
     constructor(opt_options) {
+        super();
         this.options_ = _.assign({}, this.defaults, opt_options || {});
 
         this.connection = null;

@@ -2,6 +2,7 @@
 
 const debug = require('debug')('microservice-kit:lib:queue');
 const async = require('async-q');
+const EventEmitterExtra = require('event-emitter-extra');
 const uuid = require('uuid/v4');
 const _ = require('lodash');
 const Message = require('./message');
@@ -11,8 +12,9 @@ const Router = require('./router');
 
 
 
-class Queue {
+class Queue extends EventEmitterExtra {
     constructor(options) {
+        super();
         if (!options.channel)
             throw new Error('MicroserviceKit: Queue cannot be ' +
                 'constructed without a channel');

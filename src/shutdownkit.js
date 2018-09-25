@@ -1,12 +1,14 @@
 'use strict';
 
+const EventEmitterExtra = require('event-emitter-extra');
 const debug = require('debug')('microservice-kit:shutdownkit');
 const _ = require('lodash');
 const async = require('async');
 
 
-class ShutdownKit {
+class ShutdownKit extends EventEmitterExtra {
     constructor() {
+        super();
         // Force resume node process!
         process.stdin.resume();
         this.jobs_ = [];

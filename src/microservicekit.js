@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const fs = require('fs');
+const EventEmitterExtra = require('event-emitter-extra');
 const uuid = require('uuid/v4');
 const debug = require('debug')('microservice-kit:microservicekit');
 const Chance = require('chance');
@@ -10,8 +11,10 @@ const AmqpKit = require('./amqpkit');
 const ShutdownKit = require('./shutdownkit');
 
 
-class MicroserviceKit {
+class MicroserviceKit extends EventEmitterExtra {
     constructor(opt_options) {
+        super();
+
         this.options_ = _.assign({}, this.defaults, opt_options || {});
         this.id = new Chance().first().toLowerCase() + '-' + uuid().split('-')[0];
         this.amqpKit = null;
