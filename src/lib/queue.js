@@ -11,7 +11,6 @@ const Response = require('./response');
 const Router = require('./router');
 
 
-
 class Queue extends EventEmitterExtra {
     constructor(options) {
         super();
@@ -23,6 +22,7 @@ class Queue extends EventEmitterExtra {
         this.name = options.name || '';
         this.rpc_ = options.rpc;
         this.options = options.options || {};
+        this.tracer = options.tracer;
     }
 
 
@@ -209,13 +209,34 @@ class Queue extends EventEmitterExtra {
             options.expiration = options.timeout.toString();
         }
 
-        const rv = new Promise((resolve, reject) => {
+        const rv = new Promise((originalResolve, originalReject) => {
+            let span;
+            if (this.tracer) {
+                span = this.tracer.createChildSpan({name: `amqpkit-sendEvent`});
+                span.addLabel('eventName', eventName);
+            }
+
             this.log_('info', 'Sending event to queue', {
                 eventName,
                 correlationId: options.correlationId,
                 target: this.name || this.getUniqueName(),
 
             });
+
+            function resolve(result) {
+                if (span) {
+                    span.addLabel('status', 'successful');
+                    span.endSpan();
+                }
+                originalResolve(result);
+            }
+            function reject(err) {
+                if (span) {
+                    span.addLabel('status', 'failed');
+                    span.endSpan();
+                }
+                originalReject(err);
+            }
 
             this.channel.sendToQueue(queue, content, options);
             this.rpc_.registerCallback(options.correlationId, {resolve, reject}, options.timeout);
