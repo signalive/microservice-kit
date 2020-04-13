@@ -179,7 +179,8 @@ class AmqpKit extends EventEmitterExtra {
             channel: this.channel,
             name: name,
             options: opt_options,
-            rpc: this.rpc_
+            rpc: this.rpc_,
+            tracer: this.options_.tracer
         });
 
         queue.on('log', (...args) => this.emit('log', ...args));
