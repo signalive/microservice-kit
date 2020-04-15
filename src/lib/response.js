@@ -63,10 +63,10 @@ class Response {
                     err = new Error(err.message);
                     break;
                 case 'InternalError':
-                    err = new Errors.InternalError(err.message);
+                    err = new Errors.InternalError(err.message, err.payload);
                     break;
                 case 'ClientError':
-                    err = new Errors.ClientError(err.message);
+                    err = new Errors.ClientError(err.message, err.payload);
                     break;
             }
         }
