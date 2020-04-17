@@ -212,7 +212,7 @@ class Queue extends EventEmitterExtra {
         const rv = new Promise((originalResolve, originalReject) => {
             let span;
             if (this.tracer) {
-                span = this.tracer.createChildSpan({name: `amqpkit-sendEvent`});
+                span = this.tracer.createChildSpan({name: `amqpkit-sendEvent:${eventName}`});
                 span.addLabel('eventName', eventName);
             }
 
@@ -238,8 +238,14 @@ class Queue extends EventEmitterExtra {
                 originalReject(err);
             }
 
+            const callbacks = {resolve, reject};
+            if (this.tracer) {
+                callbacks.resolve = this.tracer.wrap(resolve);
+                callbacks.reject = this.tracer.wrap(reject);
+            }
+
             this.channel.sendToQueue(queue, content, options);
-            this.rpc_.registerCallback(options.correlationId, {resolve, reject}, options.timeout);
+            this.rpc_.registerCallback(options.correlationId, callbacks, options.timeout);
         });
 
         rv.progress = (callback) => {
