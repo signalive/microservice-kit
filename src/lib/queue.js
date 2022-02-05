@@ -60,7 +60,7 @@ class Queue extends EventEmitterExtra {
                 const message = Message.parse(data);
                 const receivedAt = new Date();
 
-                this.log_('info', 'Received event', {
+                this.log_('debug', 'Received event', {
                     correlationId: msg.properties.correlationId,
                     eventName: message.eventName
                 });
@@ -89,7 +89,7 @@ class Queue extends EventEmitterExtra {
                         eventName: logPayload.eventName
                     };
 
-                    let logLevel = 'info';
+                    let logLevel = 'debug';
 
                     if (err) {
                         logLevel = 'error';
@@ -121,7 +121,7 @@ class Queue extends EventEmitterExtra {
                 this.log_('error', 'Error while consuming message', {err, content: msg.content});
 
                 if (!options.noAck) {
-                    this.log_('info', 'Negative acknowledging...');
+                    this.log_('warn', 'Negative acknowledging...');
                     this.channel.nack(msg);
                 }
             }
@@ -194,7 +194,7 @@ class Queue extends EventEmitterExtra {
         const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
         if (!this.rpc_ || options.dontExpectRpc) {
-            this.log_('info', 'Sending event to queue', {
+            this.log_('debug', 'Sending event to queue', {
                 eventName,
                 target: this.name || this.getUniqueName()
             });
@@ -216,7 +216,7 @@ class Queue extends EventEmitterExtra {
                 span.addLabel('eventName', eventName);
             }
 
-            this.log_('info', 'Sending event to queue', {
+            this.log_('debug', 'Sending event to queue', {
                 eventName,
                 correlationId: options.correlationId,
                 target: this.name || this.getUniqueName(),
