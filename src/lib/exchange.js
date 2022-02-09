@@ -59,7 +59,7 @@ class Exchange extends EventEmitterExtra {
         const content = new Buffer(JSON.stringify(message.toJSON() || {}));
 
         if (!this.rpc_ || options.dontExpectRpc) {
-            this.log_('info', 'Publishing event', {
+            this.log_('debug', 'Publishing event', {
                 eventName,
                 routingKey,
                 exchange: this.key
@@ -76,7 +76,7 @@ class Exchange extends EventEmitterExtra {
         }
 
         const rv = new Promise((resolve, reject) => {
-            this.log_('info', 'Publishing event', {
+            this.log_('debug', 'Publishing event', {
                 eventName,
                 routingKey,
                 correlationId: options.correlationId,
