@@ -1,6 +1,6 @@
 {
   "name": "microservice-kit",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "Utility belt for building microservices",
   "main": "src/index.js",
   "scripts": {
