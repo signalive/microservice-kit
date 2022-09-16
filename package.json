@@ -1,6 +1,6 @@
 {
   "name": "microservice-kit",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "Utility belt for building microservices",
   "main": "src/index.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "chance": "1.0.10",
     "debug": "3.1.0",
     "event-emitter-extra": "git+https://github.com/signalive/event-emitter-extra.git#0.2.1",
-    "lodash": "4.17.10",
+    "lodash": "4.17.21",
     "uuid": "3.3.2"
   },
   "devDependencies": {
