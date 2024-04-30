@@ -78,14 +78,14 @@ class AmqpKit extends EventEmitterExtra {
             })
             .then(() => {
                 const queues = this.options_.queues || [];
-                debug('Asserting ' + queues.length + ' queues');
+                debug('info', 'Asserting ' + queues.length + ' queues');
                 return async.mapLimit(queues, 5, (item, index) => {
                     return this.createQueue(item.key, item.name, item.options);
                 })
             })
             .then(() => {
                 const exchanges = this.options_.exchanges || [];
-                debug('Asserting ' + exchanges.length + ' exchanges');
+                debug('info', 'Asserting ' + exchanges.length + ' exchanges');
                 return async.mapLimit(exchanges, 5, (item, index) => {
                     return this.createExchange(item.key, item.name, item.type, item.options);
                 })
@@ -98,24 +98,24 @@ class AmqpKit extends EventEmitterExtra {
      */
     bindEvents() {
         this.connection.on('close', () => {
-            debug('connection closed');
+            debug('error', 'amqp connection closed');
             ShutdownKit.gracefulShutdown();
         });
 
         this.connection.on('error', (err) => {
-            debug('connection error', err && err.stack ? err.stack : err);
+            debug('error', 'amqp connection error', err && err.stack ? err.stack : err);
         });
 
         this.connection.on('blocked', () => {
-            debug('connection blocked');
+            debug('error', 'amqp connection blocked');
         });
 
         this.connection.on('unblocked', () => {
-            debug('connection blocked');
+            debug('info', 'amqp connection unblocked');
         });
 
         ShutdownKit.addJob((done) => {
-            debug('Closing connection...');
+            debug('info', 'Closing amqp connection...');
             try {
                 this.connection
                     .close()
@@ -124,7 +124,7 @@ class AmqpKit extends EventEmitterExtra {
                     })
                     .catch(done);
             } catch (err) {
-                debug('Could not close connection', err);
+                debug('error', 'Could not close connection', err);
                 done();
             }
         });
@@ -189,7 +189,7 @@ class AmqpKit extends EventEmitterExtra {
         return queue.init()
             .then(() => {
                 this.queues_[key] = queue;
-                debug('Asserted queue: ' + queue.name);
+                debug('info', 'Asserted queue: ' + queue.name);
                 return queue;
             });
     }
@@ -223,7 +223,7 @@ class AmqpKit extends EventEmitterExtra {
         return exchange.init()
             .then((exchange) => {
                 this.exchanges_[key] = exchange;
-                debug('Asserted exchange: ' + exchange.name);
+                debug('info', 'Asserted exchange: ' + exchange.name);
                 return exchange;
             });
     }
