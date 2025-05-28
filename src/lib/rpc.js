@@ -1,6 +1,6 @@
 "use strict";
 
-const EventEmitterExtra = require('event-emitter-extra');
+const EventEmitterExtra = require('./event-emitter-extra');
 const debug = require('debug')('microservice-kit:lib:rpc');
 const _ = require('lodash');
 const Response = require('./response');

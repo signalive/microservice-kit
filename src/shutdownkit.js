@@ -1,6 +1,6 @@
 'use strict';
 
-const EventEmitterExtra = require('event-emitter-extra');
+const EventEmitterExtra = require('./lib/event-emitter-extra');
 const debug = require('debug')('microservice-kit:shutdownkit');
 const _ = require('lodash');
 const async = require('async');

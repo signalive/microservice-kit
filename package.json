@@ -15,7 +15,6 @@
     "async-q": "0.3.1",
     "chance": "1.0.10",
     "debug": "3.1.0",
-    "event-emitter-extra": "git+https://github.com/signalive/event-emitter-extra.git#0.2.1",
     "lodash": "4.17.21",
     "uuid": "3.3.2"
   },
