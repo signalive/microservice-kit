@@ -3,7 +3,7 @@
 const debug = require('debug')('microservice-kit:lib:queue');
 const async = require('async-q');
 const EventEmitterExtra = require('./event-emitter-extra');
-const uuid = require('uuid/v4');
+const uuid = require('uuid');
 const _ = require('lodash');
 const Message = require('./message');
 const Exchange = require('./exchange');
@@ -202,7 +202,7 @@ class Queue extends EventEmitterExtra {
             return Promise.resolve(this.channel.sendToQueue(queue, content, options));
         }
 
-        options.correlationId = uuid();
+        options.correlationId = uuid.v4();
         options.replyTo = this.rpc_.getUniqueQueueName();
 
         if (_.isNumber(options.timeout) && options.timeout > 0) {

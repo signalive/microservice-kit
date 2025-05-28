@@ -6,8 +6,8 @@ const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 const should = chai.should();
-chai.use(sinonChai);
-chai.use(chaiAsPromised);
+chai.use(sinonChai.default);
+chai.use(chaiAsPromised.default);
 
 const ErrorTypes = require('../src/lib/errors');
 const RPC = require('../src/lib/rpc');
