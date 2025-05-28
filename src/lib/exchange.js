@@ -115,7 +115,8 @@ class Exchange extends EventEmitterExtra {
  */
 Exchange.prototype.publishDefaults = Exchange.publishDefaults = {
     dontExpectRpc: false,
-    timeout: 30 * 1000
+    timeout: 30 * 1000,
+    persistent: true
 };
 
 

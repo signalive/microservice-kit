@@ -34,7 +34,12 @@ class RPC extends EventEmitterExtra {
                     this.channel_ = channel;
                     this.queue_ = new Queue({
                         name: opt_queueName,
-                        options: {exclusive: true},
+                        options: {
+                            exclusive: true,
+                            arguments: {
+                                'x-queue-type': 'quorum'
+                            }
+                        },
                         channel: this.channel_
                     });
 
