@@ -3,8 +3,8 @@
 const debug = require('debug')('microservice-kit:lib:exchange');
 const async = require('async-q');
 const _ = require('lodash');
-const EventEmitterExtra = require('event-emitter-extra');
-const uuid = require('uuid/v4');
+const EventEmitterExtra = require('./event-emitter-extra');
+const uuid = require('uuid');
 const Message = require('./message');
 const Response = require('./response');
 
@@ -68,7 +68,7 @@ class Exchange extends EventEmitterExtra {
             return Promise.resolve(this.channel.publish(this.name, routingKey, content, options));
         }
 
-        options.correlationId = uuid();
+        options.correlationId = uuid.v4();
         options.replyTo = this.rpc_.getUniqueQueueName();
 
         if (_.isNumber(options.timeout) && options.timeout > 0) {
@@ -115,7 +115,8 @@ class Exchange extends EventEmitterExtra {
  */
 Exchange.prototype.publishDefaults = Exchange.publishDefaults = {
     dontExpectRpc: false,
-    timeout: 30 * 1000
+    timeout: 30 * 1000,
+    persistent: true
 };
 
 
