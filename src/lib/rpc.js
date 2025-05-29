@@ -35,10 +35,15 @@ class RPC extends EventEmitterExtra {
                     this.queue_ = new Queue({
                         name: opt_queueName,
                         options: {
+                            /* We are effectively creating an ephemeral queue here for RPC.
+                             * exclusive: true makes sure queue is deleted when connection is closed.
+                             * durable: false makes sure queue is not written to disk. It will be deleted when connection is dropped anyway.
+                             * autoDelete: true is here for verbosity. It basically deletes the queue when all connections are dropped.
+                             * Check out: https://amqp-node.github.io/amqplib/channel_api.html#channel_assertQueue
+                             */
                             exclusive: true,
-                            arguments: {
-                                'x-queue-type': 'quorum'
-                            }
+                            durable: false,
+                            autoDelete: true,
                         },
                         channel: this.channel_
                     });
