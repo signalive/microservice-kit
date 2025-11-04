@@ -2,19 +2,92 @@
 
 Utility belt for building microservices.
 
+**Now with TypeScript support!** This library is written in TypeScript and provides full type definitions.
+
 ## Quick Start
 
-- Check out [/demo](https://github.com/signalive/microservice-kit/tree/master/demo) folder
+- Check out [/demo](https://github.com/signalive/microservice-kit/tree/master/demo) folder for TypeScript examples
 - [A boilerplate for your new microservice](https://github.com/signalive/microservice-boilerplate)
+
+## Running Demo Examples
+
+All demo files are now in TypeScript. You can run them directly with Bun:
+
+```bash
+# Build the project first
+bun run build
+
+# Run any demo
+bun run demo/core.ts
+bun run demo/core-producer.ts
+bun run demo/socket.ts
+bun run demo/socket-producer.ts
+bun run demo/media-producer.ts
+```
+
+## Installation
+
+```bash
+# Using Bun (recommended)
+bun add microservice-kit
+
+# Using npm
+npm install microservice-kit
+
+# Using yarn
+yarn add microservice-kit
+```
+
+## TypeScript & ESM Usage
+
+The library is written in TypeScript and provides full type definitions with **dual ESM/CommonJS builds**:
+
+**ESM (Modern):**
+```typescript
+import MicroserviceKit, { AmqpKit, ShutdownKit, ErrorType } from 'microservice-kit';
+
+const microserviceKit = new MicroserviceKit({
+    type: 'core-worker',
+    amqp: {
+        url: "amqp://localhost",
+        queues: [
+            {
+                key: "core",
+                name: "core",
+                options: { durable: true }
+            }
+        ],
+        exchanges: []
+    }
+});
+
+await microserviceKit.init();
+console.log("Initialized microservicekit!");
+```
+
+**CommonJS (Legacy):**
+```javascript
+const MicroserviceKit = require('microservice-kit');
+const { AmqpKit, ShutdownKit, ErrorType } = require('microservice-kit');
+
+// Same API...
+```
 
 # API Reference
 
 ## Class MicroserviceKit
 
-This is the main class, the entry point to microservice-kit. To use it, you just need to import microservice-kit:
+This is the main class, the entry point to microservice-kit. To use it, you can import microservice-kit:
 
+**ESM (TypeScript/Modern JavaScript):**
+```typescript
+import MicroserviceKit, { AmqpKit, ShutdownKit, ErrorType } from 'microservice-kit';
+```
+
+**CommonJS (Legacy Node.js):**
 ```javascript
 const MicroserviceKit = require('microservice-kit');
+const { AmqpKit, ShutdownKit, ErrorType } = require('microservice-kit');
 ```
 
 To create an instance, look at constructor below. A microservice-kit instance is simply collection of an AmqpKit and a ShutdownKit instances.
